@@ -2,23 +2,38 @@
 % Please edit documentation in R/create_matrix.R
 \name{create.matrix}
 \alias{create.matrix}
-\title{function to create FDR or rho matrix for input in the corrplot function of
-the package corrplot}
+\title{Create corrplot matrix
+function to create FDR or rho matrix for input in the corrplot function of
+the package corrplot
+Expects input from p values/FDR values or rhos, in format as table output from
+association studies (see function association_study) (correlation results)}
 \usage{
 create.matrix(
-  data = correlation.results,
+  data,
   x = "first.var",
   y = "second.var",
-  values = "rho"
+  values = "rho",
+  markers.to.test
 )
 }
 \arguments{
-\item{values}{}
+\item{data}{input data (data frame or matrix)}
+
+\item{x}{first variable}
+
+\item{y}{second variable}
+
+\item{values}{values to use}
+
+\item{markers.to.test}{all biomarkers to test}
 }
 \value{
-
+matrix for input in corrplot function
 }
 \description{
+Create corrplot matrix
 function to create FDR or rho matrix for input in the corrplot function of
 the package corrplot
+Expects input from p values/FDR values or rhos, in format as table output from
+association studies (see function association_study) (correlation results)
 }

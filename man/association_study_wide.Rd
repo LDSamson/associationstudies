@@ -2,23 +2,33 @@
 % Please edit documentation in R/association_study_functions.R
 \name{association_study_wide}
 \alias{association_study_wide}
-\title{association study function that can be used with data in wide format:}
+\title{Association studies}
 \usage{
 association_study_wide(
-  response.var = "Granulocytes_Count",
-  dataset = data.wide,
-  explanatory.var = "Frailty.index",
+  dataset,
+  response.var,
+  explanatory.var,
   stratum = NULL,
   n.resample = 100,
   ...
 )
 }
 \arguments{
-\item{...}{}
+\item{dataset}{dataset (data frame format, original: data.wide)}
+
+\item{response.var}{response variable (for example Granulocytes_count)}
+
+\item{explanatory.var}{explanatory variable (for example Frailty.index)}
+
+\item{stratum}{blocking variables (character string)}
+
+\item{n.resample}{number of resamples}
+
+\item{...}{other variables that influence the coin::approximate function}
 }
 \value{
-
+data frame with results
 }
 \description{
-association study function that can be used with data in wide format:
+Association study function that can be used with data in wide format:
 }

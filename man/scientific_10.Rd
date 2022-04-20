@@ -2,7 +2,7 @@
 % Please edit documentation in R/custom_functions.R
 \name{scientific_10}
 \alias{scientific_10}
-\title{Create scientific notation in ggplot2 functions}
+\title{Scientific notation}
 \usage{
 scientific_10(x)
 }

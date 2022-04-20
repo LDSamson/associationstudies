@@ -2,7 +2,8 @@
 % Please edit documentation in R/table_functions.R
 \name{geomean_conf}
 \alias{geomean_conf}
-\title{Function to return geomean values with 95\% confidence interval}
+\title{Geomean + Conf interval
+Function to return geomean values with 95\% confidence interval}
 \usage{
 geomean_conf(x, n.digits = 2, na.rm = FALSE, conf.level = 0.95)
 }
@@ -19,5 +20,6 @@ geomean_conf(x, n.digits = 2, na.rm = FALSE, conf.level = 0.95)
 string with geomean and confidence interval
 }
 \description{
+Geomean + Conf interval
 Function to return geomean values with 95\% confidence interval
 }

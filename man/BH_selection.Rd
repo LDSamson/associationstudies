@@ -2,8 +2,7 @@
 % Please edit documentation in R/association_study_functions.R
 \name{BH_selection}
 \alias{BH_selection}
-\title{Function to create a selection based on a set False Discovery Rate
-I used this function in combination with the association_study function.}
+\title{BH selection}
 \usage{
 BH_selection(data, p_value = "p.value", FDR_cutoff = 0.15, hist = FALSE)
 }
@@ -17,7 +16,7 @@ BH_selection(data, p_value = "p.value", FDR_cutoff = 0.15, hist = FALSE)
 \item{hist}{logical. Whether or not to create a histogram}
 }
 \value{
-
+data frame with added columns with FDR and FDR selection
 }
 \description{
 Function to create a selection based on a set False Discovery Rate

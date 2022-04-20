@@ -2,8 +2,7 @@
 % Please edit documentation in R/custom_functions.R
 \name{addq}
 \alias{addq}
-\title{Small helper function to add backticks around complicated names
-Inspired by https://stackoverflow.com/questions/16674045/as-formula-in-r-doesnt-seem-to-accept-a-name-that-starts-with-a-number-followed}
+\title{Add backticks}
 \usage{
 addq(x)
 }
@@ -11,7 +10,7 @@ addq(x)
 \item{x}{character value that needs backticks}
 }
 \value{
-
+character value with backticks
 }
 \description{
 Small helper function to add backticks around complicated names

@@ -6,21 +6,35 @@
 Note: dataset is expected to be in "wide" format for this function.}
 \usage{
 RFanalysis(
-  data = ISA.cellular,
+  data,
   subset = NULL,
-  predictors = cell.subsets.to.analyse,
-  confounders = confounding.vars,
-  dependent.var = dependent.variable,
+  predictors,
+  confounders,
+  dependent.var,
   ntree = 10000,
   select.best.mtry = TRUE,
   ...
 )
 }
 \arguments{
-\item{...}{}
+\item{data}{dataframe to use (original: ISA.cellular)}
+
+\item{subset}{whether or not to use subset of data}
+
+\item{predictors}{character value, predictors (original: cell.subsets.to.analyse)}
+
+\item{confounders}{character value, confounding variables (original: confounding.vars)}
+
+\item{dependent.var}{character value (original: dependent.variable)}
+
+\item{ntree}{numerical, number of trees to use in random forest}
+
+\item{select.best.mtry}{logical}
+
+\item{...}{other parameters parsed to the randomForest function}
 }
 \value{
-
+a randomForest object
 }
 \description{
 Function to perform Random Forest analysis

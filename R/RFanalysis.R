@@ -1,31 +1,30 @@
 #' Function to perform Random Forest analysis
 #' Note: dataset is expected to be in "wide" format for this function.
 #'
-#' @param data
-#' @param subset
-#' @param predictors
-#' @param confounders
-#' @param dependent.var
-#' @param ntree
-#' @param select.best.mtry
-#' @param ...
+#' @param data dataframe to use (original: ISA.cellular)
+#' @param subset whether or not to use subset of data
+#' @param predictors character value, predictors (original: cell.subsets.to.analyse)
+#' @param confounders character value, confounding variables (original: confounding.vars)
+#' @param dependent.var character value (original: dependent.variable)
+#' @param ntree numerical, number of trees to use in random forest
+#' @param select.best.mtry logical
+#' @param ... other parameters parsed to the randomForest function
 #'
-#' @return
+#' @return a randomForest object
+#' @importFrom rlang .data
 #' @export
-#'
-#' @examples
-RFanalysis <- function(data = ISA.cellular,
+RFanalysis <- function(data,
                        subset = NULL,
-                       predictors = cell.subsets.to.analyse,
-                       confounders = confounding.vars,
-                       dependent.var = dependent.variable,
+                       predictors,
+                       confounders,
+                       dependent.var,
                        ntree = 10000,
                        select.best.mtry = TRUE,
                        ...){
   ## set.seed(2019) # Is this necessary?? Not sure
   ### prepare data. Select subset
-  if(!is.null(subset)) {data <- data %>% filter(Sex == subset)}
-  data <- na.omit(data) # RF cannot handle missing data
+  if(!is.null(subset)) {data <- data %>% dplyr::filter(.data$Sex == subset)}
+  data <- stats::na.omit(data) # RF cannot handle missing data
 
   ## Prepare formula for the Random forest function
   ## Remove sex from confounders if the analysis is per sex
@@ -34,9 +33,9 @@ RFanalysis <- function(data = ISA.cellular,
     if(!is.null(subset) & ("Sex" %in% confounders) ){
       confounders <- confounders[!confounders ==  "Sex"]
     }
-    RF.formula <- paste0(dependent.var, "~", paste0(c(confounders, predictors), collapse="+")) %>% as.formula
+    RF.formula <- paste0(dependent.var, "~", paste0(c(confounders, predictors), collapse="+")) %>% stats::as.formula
   }else{
-    RF.formula <- paste0(dependent.var, "~", paste0(predictors, collapse="+")) %>% as.formula
+    RF.formula <- paste0(dependent.var, "~", paste0(predictors, collapse="+")) %>% stats::as.formula
   }
 
   if(isTRUE(select.best.mtry)){
@@ -46,18 +45,18 @@ RFanalysis <- function(data = ISA.cellular,
                                  method="rf",
                                  ntree=500,
                                  tuneGrid = data.frame(mtry = 5:20),
-                                 control = trainControl(method = "oob")
+                                 control = caret::trainControl(method = "oob")
     )
     print(optimize.RF)
     # mtry with the lowest RMSE found after repeated 'out of bag' bootstrapping:
     best.mtry <- optimize.RF$bestTune$mtry
     set.seed(2019)
-    RFOutcome <<- randomForest(formula = RF.formula, data = data,
+    RFOutcome <<- randomForest::randomForest(formula = RF.formula, data = data,
                                ntree=ntree,importance=TRUE,
                                mtry = best.mtry, ...)
   }else{
     set.seed(2019)
-    RFOutcome <<- randomForest(formula = RF.formula, data = data,
+    RFOutcome <<- randomForest::randomForest(formula = RF.formula, data = data,
                                ntree=ntree,importance=TRUE, ...)
     ## mtry=ncol(data)-1 # other argument to use/originally used?
   }
@@ -65,11 +64,11 @@ RFanalysis <- function(data = ISA.cellular,
 
   if(isTRUE(select.best.mtry)){plot(optimize.RF)}
 
-  varImpPlot(RFOutcome,sort=TRUE,type=1,
+  randomForest::varImpPlot(RFOutcome,sort=TRUE,type=1,
              main=paste(subset, dependent.var,
                         "associations \nVariable importance", sep = " " ))
 
-  varImpPlot(RFOutcome,sort=TRUE,type=1,
+  randomForest::varImpPlot(RFOutcome,sort=TRUE,type=1,
              main=paste(subset, dependent.var,
                         "associations \nVariable importance", sep = " " ),
              n.var = 15)

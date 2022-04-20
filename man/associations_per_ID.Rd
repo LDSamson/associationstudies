@@ -2,23 +2,23 @@
 % Please edit documentation in R/association_study_functions.R
 \name{associations_per_ID}
 \alias{associations_per_ID}
-\title{This function will investigate the association between biomarkers over time
-(longitudinal analyses) with ID/individual as blocking variable}
+\title{Associations per individual}
 \usage{
-associations_per_ID(
-  x,
-  dataset = immune.trajectories.long,
-  comparison.var = "flowratio",
-  nresample = 10^5
-)
+associations_per_ID(x, dataset, comparison.var, nresample = 10^5)
 }
 \arguments{
-\item{nresample}{}
+\item{x}{Subsets in which comparison should be made}
+
+\item{dataset}{a data frame}
+
+\item{comparison.var}{comparison var (for example flowratio)}
+
+\item{nresample}{times to resample for permutation test (see coin::approximate)}
 }
 \value{
-
+data frame with results
 }
 \description{
 This function will investigate the association between biomarkers over time
-(longitudinal analyses) with ID/individual as blocking variable
+(longitudinal analyses) with ID/individual as blocking variable.
 }

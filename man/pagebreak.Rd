@@ -2,8 +2,7 @@
 % Please edit documentation in R/custom_functions.R
 \name{pagebreak}
 \alias{pagebreak}
-\title{Function to add pagebreaks in Rmarkdown files.
-For more info see: https://stackoverflow.com/a/55064070}
+\title{Add pagebreak}
 \usage{
 pagebreak()
 }

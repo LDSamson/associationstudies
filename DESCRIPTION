@@ -19,4 +19,7 @@ Imports:
     knitr,
     tidyr,
     rlang,
-    magrittr
+    magrittr,
+    stringr,
+    stats,
+    tidyselect

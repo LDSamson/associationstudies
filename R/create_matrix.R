@@ -1,28 +1,28 @@
-## helper function: function to create FDR or rho matrix for input in corrplot.
-## Expects input from p values/FDR values or rhos, in format as output from
-## association studies (see below for function association.study)
+#' Create corrplot matrix
 #' function to create FDR or rho matrix for input in the corrplot function of
 #' the package corrplot
+#' Expects input from p values/FDR values or rhos, in format as table output from
+#' association studies (see function association_study) (correlation results)
 #'
-#' @param data
-#' @param x
-#' @param y
-#' @param values
+#' @param data input data (data frame or matrix)
+#' @param x first variable
+#' @param y second variable
+#' @param values values to use
+#' @param markers.to.test all biomarkers to test
 #'
-#' @return
+#' @return matrix for input in corrplot function
 #' @export
 #'
-#' @examples
-create.matrix <- function(data = correlation.results, x = "first.var",
-                          y = "second.var",values = "rho"){
-  matrix.1 <- select(.data = data, x, y, values)
-  matrix.2 <- select(.data = data, y, x, values)
+create.matrix <- function(data, x = "first.var",
+                          y = "second.var",values = "rho", markers.to.test){
+  matrix.1 <- dplyr::select(data, x, y, values)
+  matrix.2 <- dplyr::select(data, y, x, values)
   names(matrix.2) <- names(matrix.2)[c(2,1,3)]
   matrix.full <- dplyr::bind_rows(matrix.1, matrix.2) %>%
     tidyr::pivot_wider(names_from = y, values_from = values)
   matrix.full[[x]] <- factor(matrix.full[[x]], levels = markers.to.test)
   matrix.full <- matrix.full %>%
-    arrange(!!rlang::sym(x)) %>%
+    dplyr::arrange(!!rlang::sym(x)) %>%
     as.data.frame()
   if(values == "rho"){
     matrix.full <- matrix.full %>%

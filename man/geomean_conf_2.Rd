@@ -2,8 +2,7 @@
 % Please edit documentation in R/table_functions.R
 \name{geomean_conf_2}
 \alias{geomean_conf_2}
-\title{Improved version of geomean_conf for latex tables:
-Inspired by this post: # https://stackoverflow.com/questions/44325464/how-to-control-knitr-kable-scientific-notation}
+\title{Geomean + Conf interval}
 \usage{
 geomean_conf_2(
   x,
@@ -25,9 +24,11 @@ geomean_conf_2(
 \item{scientific.above}{threshold above which scientific notation should be used}
 }
 \value{
-
+Character value to input in kable function
 }
 \description{
 Improved version of geomean_conf for latex tables:
 Inspired by this post: # https://stackoverflow.com/questions/44325464/how-to-control-knitr-kable-scientific-notation
+n.b. dollar signs give math output in kable function
+Make sure to set escape=F in kable function!
 }

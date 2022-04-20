@@ -2,15 +2,12 @@
 % Please edit documentation in R/association_study_functions.R
 \name{association_study}
 \alias{association_study}
-\title{Function to perform associations between two parameters
-Associations with p values calculated by permutation, using coin package
-Note: dataset is expected to be in "long" format for this function.
-Note2: missing values are (silently) deleted}
+\title{Association studies}
 \usage{
 association_study(
   subset.parameter = "Granulocytes_Count",
   subset.column = "Cellname",
-  dataset = data.long,
+  dataset,
   numerical.value = "Concentration",
   comparison.value = "Frailty.index",
   Stratum = c("Age.category", "CMV.status"),
@@ -19,20 +16,30 @@ association_study(
 )
 }
 \arguments{
+\item{subset.parameter}{character value that can be found in the subset.column (original: Granulocytes_Count)}
+
+\item{subset.column}{column containing subset names (original: Cellname)}
+
+\item{dataset}{data frame to use (original: data.long)}
+
 \item{numerical.value}{a numerical value for the comparison}
 
 \item{comparison.value}{the second parameter. If it is a factor, the wilcoxon test will be used. If it is numerical, the spearman_test will be used}
 
 \item{Stratum}{character string. Can be one or several blocking variables.}
 
-\item{...}{}
+\item{n.resample}{number of random samples for permutation testing}
+
+\item{...}{Other parameters that influence the function coin::approximate}
 }
 \value{
-
+data frame with results
 }
 \description{
 Function to perform associations between two parameters
 Associations with p values calculated by permutation, using coin package
 Note: dataset is expected to be in "long" format for this function.
 Note2: missing values are (silently) deleted
+Use the function in an apply loop (or map_dfr loop) to perform it on
+many different subsets in the data.
 }
