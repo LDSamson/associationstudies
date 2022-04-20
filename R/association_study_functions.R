@@ -17,13 +17,28 @@
 #' @param dataset data frame to use (original: data.long)
 #' @param numerical.value a numerical value for the comparison
 #' @param comparison.value the second parameter. If it is a factor, the wilcoxon test will be used. If it is numerical, the spearman_test will be used
-#' @param Stratum character string. Can be one or several blocking variables.
+#' @param stratum character string. Can be one or several blocking variables.
 #' @param n.resample number of random samples for permutation testing
 #' @param ... Other parameters that influence the function coin::approximate
 #'
 #' @return data frame with results
 #' @export
 #' @importFrom rlang .data
+#'
+#' @examples
+#' cell_vars <- cell_vars <- names(immune_data)[!names(immune_data) %in%
+#' c("Sex", "Frailty.index", "Batch")]
+#' immune_data_long <- immune_data %>%
+#' tidyr::pivot_longer(names_to = "cellnames", values_to = "value", cell_vars)
+#'
+#' purrr::map_dfr(cell_vars, .f = ~association_study(
+#' dataset = immune_data_long,
+#' subset.parameter = .,
+#' subset.column = "cellnames",
+#' numerical.value = "value",
+#' comparison.value = "Frailty.index",
+#' stratum = c("Sex", "Batch")
+#' ))
 #'
 association_study <- function(subset.parameter = "Granulocytes_Count",
                               subset.column    = "Cellname",
@@ -351,4 +366,29 @@ perform_single_pair_test <- function(
     data.to.return.i$`stratified.by` <- paste(stratum, collapse = "_")
   }
   return(data.to.return.i)
+}
+
+#' Association studies in long format
+#'
+#' This function, in combination with association_study_wide,
+#' can basically replace the function 'association_study'.
+#' While I used the function association_study in my publications,
+#' I think this implementation is better. The function association_study_wide
+#' is more intuitive, and this function is just a small wrapper
+#' that you can use when data is in long format.
+#'
+#' @param data data frame to use
+#' @param response.names character value of column that contains all the names of the response values that need to be investigated separately
+#' @param ... other values that will be parsed to the function association_study_wide
+#'
+#' @return data frame with results as output
+#' @export
+#'
+association_study_long <- function(data, response.names, ...){
+  purrr::map_dfr(unique(data[[response.names]]), .f = function(x){
+    df <- association_study_wide(
+      data %>% dplyr::filter({{response.names}} == x), ...)
+    df["Response var"] <- x
+    df
+  })
 }
