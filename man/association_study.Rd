@@ -10,7 +10,7 @@ association_study(
   dataset,
   numerical.value = "Concentration",
   comparison.value = "Frailty.index",
-  Stratum = c("Age.category", "CMV.status"),
+  stratum = c("Age.category", "CMV.status"),
   n.resample = 100,
   ...
 )
@@ -26,7 +26,7 @@ association_study(
 
 \item{comparison.value}{the second parameter. If it is a factor, the wilcoxon test will be used. If it is numerical, the spearman_test will be used}
 
-\item{Stratum}{character string. Can be one or several blocking variables.}
+\item{stratum}{character string. Can be one or several blocking variables.}
 
 \item{n.resample}{number of random samples for permutation testing}
 
@@ -42,4 +42,20 @@ Note: dataset is expected to be in "long" format for this function.
 Note2: missing values are (silently) deleted
 Use the function in an apply loop (or map_dfr loop) to perform it on
 many different subsets in the data.
+}
+\examples{
+cell_vars <- cell_vars <- names(immune_data)[!names(immune_data) \%in\%
+c("Sex", "Frailty.index", "Batch")]
+immune_data_long <- immune_data \%>\%
+tidyr::pivot_longer(names_to = "cellnames", values_to = "value", cell_vars)
+
+purrr::map_dfr(cell_vars, .f = ~association_study(
+dataset = immune_data_long,
+subset.parameter = .,
+subset.column = "cellnames",
+numerical.value = "value",
+comparison.value = "Frailty.index",
+stratum = c("Sex", "Batch")
+))
+
 }

@@ -19,7 +19,11 @@ Imports:
     knitr,
     tidyr,
     rlang,
+    purrr,
     magrittr,
     stringr,
     stats,
     tidyselect
+Depends: 
+    R (>= 2.10)
+LazyData: true
