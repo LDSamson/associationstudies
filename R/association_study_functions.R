@@ -30,29 +30,29 @@ association_study <- function(subset.parameter = "Granulocytes_Count",
                               dataset,
                               numerical.value  = "Concentration",
                               comparison.value = "Frailty.index",
-                              Stratum          = c("Age.category", "CMV.status"),
+                              stratum          = c("Age.category", "CMV.status"),
                               n.resample       = 100,
                               ...){
   data.to.analyze <- dataset %>%
     dplyr::select(tidyselect::all_of(c(subset.column, numerical.value,
-                    comparison.value, Stratum))) %>%
+                                       comparison.value, stratum))) %>%
     dplyr::filter(!!rlang::sym(subset.column) == subset.parameter) %>%
     stats::na.omit() %>%
     droplevels()
-  if(!is.null(Stratum)){
-    data.to.analyze <- data.to.analyze %>%
-      tidyr::unite(col = "block", tidyselect::all_of(Stratum)) %>%
-     dplyr::mutate(block = factor(.data$block))
-    formula.to.test <- stats::as.formula(paste0(numerical.value, "~", comparison.value, "|block"))
-  }else {
-    formula.to.test <- stats::as.formula(paste0(numerical.value, "~", comparison.value))
+
+  string_formula <- paste0(addq(numerical.value), "~", addq(comparison.value))
+  if(!is.null(stratum)){
+    data.to.analyze <- unite_vars(data.to.analyze, vars = stratum, colname = "block")
+    string_formula <- paste0(string_formula, "|block")
   }
+  formula.to.test <- stats::as.formula(string_formula)
+
   if(is.factor(dataset[[comparison.value]])){
     ## test results when comparing a continuous variable between groups/factor:
     test.results <- coin::wilcox_test(formula.to.test,
                                       data = data.to.analyze,
                                       distribution=coin::approximate(nresample=n.resample,
-                                                               ...)
+                                                                     ...)
     )
   }else if(is.numeric(dataset[[comparison.value]])){
     ## test results when testing two continuous variables:
@@ -65,28 +65,23 @@ association_study <- function(subset.parameter = "Granulocytes_Count",
       data = data.to.analyze,
       x = numerical.value,
       y = comparison.value,
-      stratum = if(is.null(Stratum)){NULL}else "block"
+      stratum = if(is.null(stratum)){NULL}else "block"
     )
   }
-  p.val <- as.numeric(coin::pvalue(test.results))
-  Direction <- sign(coin::statistic(test.results))
+
   results.to.return <- list(
     "Subsets"          = subset.parameter,
     "Comparison value" = comparison.value,
     "sample.size"      = nrow(data.to.analyze),
-    "stratified.by"    = "",
+    "stratified.by"    = paste(stratum, collapse = "_"),
     "n.resample"       = n.resample,
     "Method"           = test.results@method,
-    "Direction"        = Direction,
-    "p.value"          = p.val
+    "Direction"        = sign(coin::statistic(test.results)),
+    "p.value"          = as.numeric(coin::pvalue(test.results))
   )
   ## Add rho to outcome, if applicable:
   if(results.to.return[["Method"]] == "Spearman Correlation Test"){
     results.to.return[["rho"]] <- global.rho}
-  if(!is.null(Stratum)){
-    results.to.return$`stratified.by` <- paste(Stratum, collapse = "_")
-  }
-  ## Return results:
   return(results.to.return)
 }
 
@@ -189,16 +184,13 @@ association_study_wide <- function(
     dplyr::select(response.var, explanatory.var, stratum) %>%
     stats::na.omit() %>%
     droplevels()
-
+  string_formula <- paste0(addq(response.var), "~", addq(explanatory.var))
   if(!is.null(stratum)){
-    data.to.analyze <- data.to.analyze %>%
-      tidyr::unite(col = "block", tidyselect::all_of(stratum)) %>%
-     dplyr::mutate(block = factor(.data$block))
-    formula.to.test <- stats::as.formula(paste0(addq(response.var), "~", addq(explanatory.var),
-                                         "|block"))
-  }else {
-    formula.to.test <- stats::as.formula(paste0(addq(response.var), "~", addq(explanatory.var)))
+    data.to.analyze <- unite_vars(data.to.analyze, vars = stratum, colname = "block")
+    string_formula <- paste0(string_formula, "|block")
   }
+  formula.to.test <- stats::as.formula(string_formula)
+
   if(is.factor(dataset[[explanatory.var]])){
     ## test results when comparing a continuous variable between groups/factor:
     test.results <- coin::wilcox_test(formula.to.test, data = data.to.analyze,
@@ -216,20 +208,19 @@ association_study_wide <- function(
     global.rho <- weighted_average_rho(data = data.to.analyze, x = response.var,
                                        y = explanatory.var, stratum = "block")
   }
-  p.val <- as.numeric(coin::pvalue(test.results))
-  Direction <- sign(coin::statistic(test.results))
-  results.to.return <- list("Response var"    = response.var,
-                            "Explanatory var" = explanatory.var,
-                            "sample.size"     = nrow(data.to.analyze),
-                            "n.resample"      = n.resample,
-                            "Method"          = test.results@method,
-                            "Direction"       = Direction,
-                            "p.value"         = p.val)
+  results.to.return <- list(
+    "Response var"    = response.var,
+    "Explanatory var" = explanatory.var,
+    "sample.size"     = nrow(data.to.analyze),
+    "stratified.by"   = paste(stratum, collapse = "_"),
+    "n.resample"      = n.resample,
+    "Method"          = test.results@method,
+    "Direction"       = sign(coin::statistic(test.results)),
+    "p.value"         = as.numeric(coin::pvalue(test.results))
+    )
   ## Add rho to outcome, if applicable:
   if(results.to.return[["Method"]] == "Spearman Correlation Test"){
     results.to.return[["rho"]] <- global.rho}
-  if(!is.null(stratum)){
-    results.to.return$`stratified.by` <- paste(stratum, collapse = "_")}
   ## Return results:
   return(results.to.return)
 }

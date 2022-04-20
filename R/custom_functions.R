@@ -100,3 +100,25 @@ weighted_average_rho <-function(data, x, y, stratum = "block"){
 #'
 #' @examples addq("Long Column Name")
 addq <- function(x){paste0("`", x, "`")}
+
+
+
+#' Unite values
+#'
+#' This function unites column variable and makes it a factor,
+#' for easy use in other functions.
+#'
+#' @param x a data frame
+#' @param vars character vector, with values to unite
+#' @param colname name of the newly created column
+#' @param ...  parsed to underlying function tidyr::unite
+#'
+#' @return  data frame where multiple columns are united
+#' @export
+#'
+unite_vars <- function(x, vars, colname = "block", ...){
+  data.to.return <- x %>%
+    tidyr::unite(col = {{colname}}, tidyselect::all_of(vars), ...)
+  data.to.return[[colname]] <- factor(data.to.return[[colname]])
+  return(data.to.return)
+}
