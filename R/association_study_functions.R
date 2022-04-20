@@ -1,9 +1,3 @@
-####### Function to perform associations between two parameters: ############################
-
-## Associations with p values calculated by permutation, using coin package
-## Note: dataset is expected to be in "long" format for this function.
-## Note2: missing values are (silently) deleted
-
 ##  a numerical value and a second parameter (comparison value).
 ## If the second parameter is a factor, a wilcoxon test will be used.
 ## If the second parameter is a numerical value, a spearman association will be used.
@@ -15,7 +9,23 @@
 ##        (this gives an error when CMV.status is missing)
 ##    - Added calculation of rho when no blocking variable is used
 
-association.study <- function(subset.parameter = "Granulocytes_Count",
+#' Function to perform associations between two parameters
+#' Associations with p values calculated by permutation, using coin package
+#' Note: dataset is expected to be in "long" format for this function.
+#' Note2: missing values are (silently) deleted
+#'
+#' @param subset.parameter
+#' @param subset.column
+#' @param dataset
+#' @param numerical.value a numerical value for the comparison
+#' @param comparison.value the second parameter. If it is a factor, the wilcoxon test will be used. If it is numerical, the spearman_test will be used
+#' @param Stratum character string. Can be one or several blocking variables.
+#' @param n.resample number of random samples for permutation testing
+#' @param ... Other parameters that influence the function coin::approximate
+#'
+#' @return
+#' @export
+association_study <- function(subset.parameter = "Granulocytes_Count",
                               subset.column    = "Cellname",
                               dataset          = data.long,
                               numerical.value  = "Concentration",
@@ -26,7 +36,7 @@ association.study <- function(subset.parameter = "Granulocytes_Count",
   data.to.analyze <- dataset %>%
     select(all_of(c(subset.column, numerical.value,
                     comparison.value, Stratum))) %>%
-    filter(!!sym(subset.column) == subset.parameter) %>%
+    filter(!!rlang::sym(subset.column) == subset.parameter) %>%
     na.omit() %>%
     droplevels()
   if(!is.null(Stratum)){
@@ -41,7 +51,7 @@ association.study <- function(subset.parameter = "Granulocytes_Count",
     ## test results when comparing a continuous variable between groups/factor:
     test.results <- coin::wilcox_test(formula.to.test,
                                       data = data.to.analyze,
-                                      distribution=approximate(nresample=n.resample,
+                                      distribution=coin::approximate(nresample=n.resample,
                                                                ...)
     )
   }else if(is.numeric(dataset[[comparison.value]])){
@@ -49,7 +59,7 @@ association.study <- function(subset.parameter = "Granulocytes_Count",
     test.results <- coin::spearman_test(
       formula.to.test,
       data = data.to.analyze,
-      distribution=approximate(nresample=n.resample, ...)
+      distribution=coin::approximate(nresample=n.resample, ...)
     )
     global.rho <- weighted.average.rho(
       data = data.to.analyze,
@@ -80,24 +90,30 @@ association.study <- function(subset.parameter = "Granulocytes_Count",
   return(results.to.return)
 }
 
-############### Function to create a selection based on FDR ####################
-## This function can be used after the previous one.
-
 ## 08-01-2020 LS:
 ##    - Fixed bug: Now returns warning and a valid table
 ##      when no associations are found
 
-perform.BH.selection <- function(data, identifier, p_value = "p.value",
+#' Function to create a selection based on a set False Discovery Rate
+#' I used this function in combination with the association_study function.
+#'
+#' @param data a data frame
+#' @param p_value character value of column containing the p values
+#' @param FDR_cutoff numerical value. FDR cutoff
+#' @param hist logical. Whether or not to create a histogram
+#'
+#' @return
+#' @export
+BH_selection <- function(data, p_value = "p.value",
                                  FDR_cutoff = 0.15, hist=FALSE){
   # calculate FDR
   n.of.tests <- nrow(data)
   data.sorted <- data %>%
-    ungroup() %>%
-    # select(identifier, p_value) %>%
-    filter(!is.na(p_value)) %>%
-    arrange(!!sym(p_value)) %>%
-    mutate(order.of.tests = row_number(),
-           FDR            = n.of.tests*!!sym(p_value)/order.of.tests,
+    dplyr::ungroup() %>%
+    dplyr::filter(!is.na(p_value)) %>%
+    dplyr::arrange(!!rlang::sym(p_value)) %>%
+    dplyr::mutate(order.of.tests = dplyr::row_number(),
+           FDR            = n.of.tests*!!rlang::sym(p_value)/order.of.tests,
            FDR            = round(FDR, digits = 4)
     )
   if(min(data.sorted$FDR) > FDR_cutoff){
@@ -110,22 +126,13 @@ perform.BH.selection <- function(data, identifier, p_value = "p.value",
     max.n.of.tests <- max(data.sorted[data.sorted$FDR <= FDR_cutoff,
                                       "order.of.tests"])
     data.with.BH.selection <- data.sorted %>%
-      mutate(
+      dplyr::mutate(
         FDR_selection = ifelse(order.of.tests <= max.n.of.tests, 1, 0)
-      ) %>% select(-order.of.tests)
+      ) %>% dplyr::select(-order.of.tests)
   }
   # (optional): print p value histogram
   if(isTRUE(hist)){
-    gamma.hat <- 1
-    p.values.plot <- ggplot(data.with.BH.selection,
-                            aes(x = !!sym(p_value), y = ..density..)) +
-      geom_histogram(binwidth = 0.1, fill = 'lightblue', col = 'black') +
-      geom_hline(yintercept = 1, col = 'tomato') +
-      theme_light() +
-      scale_y_continuous(expand = c(0,0)) +
-      labs(x = "P value",
-           title = "P-values of the association study")
-    print(p.values.plot)
+    plot.p.histogram(data = data.with.BH.selection)
   }
   return(data.with.BH.selection)
 }
@@ -136,19 +143,27 @@ plot.p.histogram <- function(
     title.to.plot = "P-values of the association study",
     gamma.hat = 1
 ){
-  #  gamma.hat <- 1
-  p.values.hist <- ggplot(data, aes(x = !!sym(p_value), y = ..density..)) +
-    geom_histogram(binwidth = 0.1, fill = 'lightblue', col = 'black') +
-    geom_hline(yintercept = gamma.hat, col = 'tomato') +
-    theme_light() +
-    scale_y_continuous(expand = c(0,0)) +
-    labs(x = "P value", title = title.to.plot)
+  p.values.hist <- ggplot2::ggplot(data, aes(x = !!rlang::sym(p_value), y = ..density..)) +
+    ggplot2::geom_histogram(binwidth = 0.1, fill = 'lightblue', col = 'black') +
+    ggplot2::geom_hline(yintercept = gamma.hat, col = 'tomato') +
+    ggplot2::theme_light() +
+    ggplot2::scale_y_continuous(expand = c(0,0)) +
+    ggplot2::labs(x = "P value", title = title.to.plot)
   print(p.values.hist)
 }
 
-
-## same association study function but now in wide format:
-association.study.wide <- function(
+#' association study function that can be used with data in wide format:
+#'
+#' @param response.var response variable
+#' @param dataset dataset (data frame format)
+#' @param explanatory.var explanatory variable
+#' @param stratum blocking variables (character string)
+#' @param n.resample number of resamples
+#' @param ... other variables that influence the coin::approximate function
+#'
+#' @return
+#' @export
+association_study_wide <- function(
     response.var    = "Granulocytes_Count",
     dataset         = data.wide,
     explanatory.var = "Frailty.index",
@@ -172,14 +187,14 @@ association.study.wide <- function(
   if(is.factor(dataset[[explanatory.var]])){
     ## test results when comparing a continuous variable between groups/factor:
     test.results <- coin::wilcox_test(formula.to.test, data = data.to.analyze,
-                                      distribution=approximate(
+                                      distribution=coin::approximate(
                                         nresample=n.resample, ...
                                       )
     )
   }else if(is.numeric(dataset[[explanatory.var]])){
     ## test results when testing two continuous variables:
     test.results <- coin::spearman_test(formula.to.test, data = data.to.analyze,
-                                        distribution=approximate(
+                                        distribution=coin::approximate(
                                           nresample=n.resample, ...
                                         )
     )
@@ -202,12 +217,17 @@ association.study.wide <- function(
   return(results.to.return)
 }
 
-
-#############
-# This function will investigate the association between biomarkers over time
-# with ID as blocking variable
-# Fev1PercPred, FvcPercPred Fev1FvcPercPred
-associations.per.ID <- function(x, dataset = immune.trajectories.long,
+#' This function will investigate the association between biomarkers over time
+#' (longitudinal analyses) with ID/individual as blocking variable
+#'
+#' @param x
+#' @param dataset
+#' @param comparison.var
+#' @param nresample
+#'
+#' @return
+#' @export
+associations_per_ID <- function(x, dataset = immune.trajectories.long,
                                 comparison.var = "flowratio", nresample = 10^5){
   form.to.test <- as.formula(paste0(comparison.var, "~", x, "|ID"))
   data.to.analyze <- dataset %>%
@@ -265,42 +285,40 @@ perform.single.pair.test <- function(
   data.for.test.i <- data.set %>%
     dplyr::select(vars.to.select) %>%
     na.omit()
-  # need backticks in complicated names:
-  # https://stackoverflow.com/questions/16674045/as-formula-in-r-doesnt-seem-to-accept-a-name-that-starts-with-a-number-followed
-  addq <- function(x) paste0("`", x, "`")
 
   formula.string <- paste0(addq(single.pair), collapse = "~")
   # Add block to formula if existing:
   if(!is.null(stratum)){
     data.for.test.i <- data.for.test.i %>%
       # if block contains more than one variable, this will concatenate them:
-      unite(col = "block", stratum) %>%
-      mutate(block = factor(block))
+      tidyr::unite(col = "block", stratum) %>%
+      dplyr::mutate(block = factor(block))
     formula.string <- as.formula(paste0(formula.string, "|block"))
     ## test whether blocks with two or less measurements exist:
     obs.per.block <- data.for.test.i %>%
-      group_by(block) %>%
-      summarize(n.per.block = n())
+      dplyr::group_by(block) %>%
+      dplyr::summarize('n.per.block' = n())
     # omit blocks with not enough measurements (the correlation
     # is perfect/ does not make sense):
     if(any(obs.per.block$n.per.block<=2)){
-      blocks.to.print <- obs.per.block %>% filter(n.per.block<=2) %>%
-        unite( col ="block", sep = ": ") %>%
-        pull(block)
+      blocks.to.print <- obs.per.block %>%
+        dplyr::filter(n.per.block<=2) %>%
+        tidyr::unite(col ="block", sep = ": ") %>%
+        dplyr::pull(block)
       warning(paste0("some blocks with too few observations detected;",
                      "these will be omitted from analysis:\n",
                      paste0(blocks.to.print, collapse = ", ")))
     }
-    data.for.test.i <- left_join(data.for.test.i, obs.per.block,
+    data.for.test.i <- dplyr::left_join(data.for.test.i, obs.per.block,
                                  by = "block") %>%
       filter(n.per.block >2)
   }
   formula.to.test  <- as.formula(formula.string)
 
-  test.results     <- spearman_test(
+  test.results     <- coin::spearman_test(
     formula.to.test,
     data = data.for.test.i,
-    distribution = approximate(nresample = resampling.number)
+    distribution = coin::approximate(nresample = resampling.number)
   )
   #### calculate rho: ####
   global.rho <- weighted.average.rho(data = data.for.test.i, x = single.pair[1],

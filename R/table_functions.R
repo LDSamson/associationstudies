@@ -1,8 +1,13 @@
 
+#' Function to return geomean values with 95% confidence interval
+#'
+#' @param x numeric value
+#' @param n.digits digits to preserve in output
+#' @param na.rm whether or not to remove NA's
+#' @param conf.level confidence interval, standard 0.95
+#'
+#' @return string with geomean and confidence interval
 #' @export
-
-############ Function to return geomean values with 95% confidence interval: ################
-
 geomean_conf <- function(x, n.digits = 2, na.rm = FALSE, conf.level = 0.95){
   if (sum(is.na(x)) > 0){
     if (na.rm) {x <- na.omit(x)}
@@ -17,8 +22,18 @@ geomean_conf <- function(x, n.digits = 2, na.rm = FALSE, conf.level = 0.95){
   return(paste0(meanvalue, " (", cinterval[1], "-", cinterval[2], ")"))
 }
 
-# cleaner display output for geomean_conf:
-# https://stackoverflow.com/questions/44325464/how-to-control-knitr-kable-scientific-notation
+#' Improved version of geomean_conf for latex tables:
+#' Inspired by this post: # https://stackoverflow.com/questions/44325464/how-to-control-knitr-kable-scientific-notation
+#'
+#' @param x numeric value
+#' @param n.digits digits to preserve in output
+#' @param na.rm whether or not to remove NA's
+#' @param conf.level confidence interval, standard 0.95
+#' @param scientific.above threshold above which scientific notation should be used
+#'
+#' @return
+#' @export
+#'
 geomean_conf_2 <- function(x, n.digits = 3, na.rm = FALSE, conf.level = 0.95,
                            scientific.above = 10000){
   if (sum(is.na(x)) > 0){
@@ -60,8 +75,15 @@ geomean_conf_2 <- function(x, n.digits = 3, na.rm = FALSE, conf.level = 0.95,
   return(output.string)
 }
 
-# other functions for table output:
-# mean with range function:
+#' Function for table output giving mean plus range:
+#'
+#' @param x
+#' @param digits
+#' @param ...
+#'
+#' @return
+#' @export
+#'
 mean.plus.range <- function(x, digits = 1, ...){
   mean.value <- round(mean(x, ...), digits = digits)
   sd.value   <- round(sd(x, ...),   digits = digits)
@@ -74,7 +96,14 @@ mean.plus.range <- function(x, digits = 1, ...){
   return(value.to.return)
 }
 
-# older functions used for tables:
+#' older function used for nice table output
+#'
+#' @param var
+#' @param n.digits
+#' @param na.rm
+#'
+#' @return
+#' @export
 mean.sd <- function(var, n.digits = 2, na.rm = T){
   mean.sd.calculated <-
     paste0(
