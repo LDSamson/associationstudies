@@ -312,8 +312,7 @@ perform_single_pair_test <- function(
 #'
 association_study_long <- function(data, response.names, ...){
   purrr::map_dfr(unique(data[[response.names]]), .f = function(x){
-    df <- association_study_wide(
-      data %>% dplyr::filter({{response.names}} == x), ...)
+    df <- association_study_wide(data[data[[response.names]] == x, ], ...)
     df["Response var"] <- x
     df
   })
