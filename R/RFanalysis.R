@@ -1,4 +1,5 @@
 #' Function to perform Random Forest analysis
+#'
 #' Note: dataset is expected to be in "wide" format for this function.
 #'
 #' @param data dataframe to use (original: ISA.cellular)

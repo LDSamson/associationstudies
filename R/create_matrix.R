@@ -13,7 +13,7 @@
 #' @return matrix for input in corrplot function
 #' @export
 #'
-create.matrix <- function(data, x = "first.var",
+create_matrix <- function(data, x = "first.var",
                           y = "second.var",values = "rho", markers.to.test){
   matrix.1 <- dplyr::select(data, x, y, values)
   matrix.2 <- dplyr::select(data, y, x, values)
