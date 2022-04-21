@@ -40,13 +40,13 @@
 #' stratum = c("Sex", "Batch")
 #' ))
 #'
-association_study <- function(subset.parameter = "Granulocytes_Count",
-                              subset.column    = "Cellname",
+association_study <- function(subset.parameter,
+                              subset.column,
                               dataset,
-                              numerical.value  = "Concentration",
-                              comparison.value = "Frailty.index",
-                              stratum          = c("Age.category", "CMV.status"),
-                              n.resample       = 100,
+                              numerical.value,
+                              comparison.value,
+                              stratum          = NULL,
+                              n.resample       = 10^4,
                               ...){
   data.to.analyze <- dataset %>%
     dplyr::select(tidyselect::all_of(c(subset.column, numerical.value,
@@ -102,7 +102,8 @@ association_study <- function(subset.parameter = "Granulocytes_Count",
 
 #' Association studies
 #'
-#' Association study function that can be used with data in wide format:
+#' Association study function that can be used with data in wide format. It uses
+#' permutation testing functions from the coin package.
 #'
 #' @param response.var response variable (for example Granulocytes_count)
 #' @param dataset dataset (data frame format, original: data.wide)
@@ -119,7 +120,7 @@ association_study_wide <- function(
     response.var,
     explanatory.var,
     stratum         = NULL,
-    n.resample      = 100,
+    n.resample      = 10^4,
     ...){
   data.to.analyze <- dataset %>%
     dplyr::select(response.var, explanatory.var, stratum) %>%
@@ -179,8 +180,12 @@ association_study_wide <- function(
 #'
 #' @return data frame with results
 #' @export
-associations_per_ID <- function(x, dataset,
-                                comparison.var, nresample = 10^5){
+associations_per_ID <- function(
+    x,
+    dataset,
+    comparison.var,
+    nresample = 10^4
+    ){
   form.to.test <- stats::as.formula(paste0(comparison.var, "~", x, "|ID"))
   data.to.analyze <- dataset %>%
     dplyr::select(c("ID", "DoetRound", x, comparison.var, "Sex")) %>%
@@ -227,7 +232,7 @@ perform_single_pair_test <- function(
     single.pair,
     data.set,
     resampling.number = 10^4,
-    stratum         = c("Age.category", "Batch")
+    stratum           = NULL
 ){
   # single.pair <- c("Granuloytes", "Monocytes") # for debugging
   if(length(single.pair) != 2){warning(
@@ -296,16 +301,20 @@ perform_single_pair_test <- function(
 
 #' Association studies in long format
 #'
-#' This function, in combination with association_study_wide,
-#' can basically replace the function 'association_study'.
-#' While I used the function association_study in my publications,
-#' I think this implementation is better. The function association_study_wide
-#' is more intuitive, and this function is just a small wrapper
-#' that you can use when data is in long format.
+#' This function, in combination with \code{\link{association_study_wide}},
+#' can basically replace the function '\code{\link{association_study}}'.
+#' I think \code{\link{association_study_wide}} is more intuitive,
+#' and this function is just a small wrapper
+#' that you can use when data is in long format, mimicking behavior
+#' of \code{\link{association_study}}.
+#'
+#' Note: Response variables should be of the same type
+#' (e.g. all numerical, all categorical).
+#' Note 2: all blocks should contain enough observations.
 #'
 #' @param data data frame to use
 #' @param response.names character value of column that contains all the names of the response values that need to be investigated separately
-#' @param ... other values that will be parsed to the function association_study_wide
+#' @param ... other values will be parsed to \code{\link{association_study_wide}}
 #'
 #' @return data frame with results as output
 #' @export
