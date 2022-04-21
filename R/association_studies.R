@@ -225,9 +225,20 @@ associations_per_ID <- function(
 }
 
 # single.pair <- c("CXCL10/IP-10", "CXCL11/I-TAC" )
-## Create function for single pair association
 ## original dataset: immune.trajectories.long.endpoint
+#' perform paired testing of associations.
+#'
+#' Note: deprecated function. This function can be completely replaced by association_study_wide.
+#' Only thing missing is the check of blocks, whether blocks with n <= 2
+#' observations exists.
+#'
+#' @param single.pair character varlue of length 2
+#' @param data.set data frame to use
+#' @param resampling.number number resamplings (see also coin::approximate)
+#' @param stratum character value. blocking vars to use
+#'
 #' @importFrom rlang .data
+#'
 perform_single_pair_test <- function(
     single.pair,
     data.set,

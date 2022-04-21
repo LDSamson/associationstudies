@@ -65,3 +65,22 @@ unite_vars <- function(x, vars, colname = "block", ...){
   return(data.to.return)
 }
 
+
+#' Create all combinations of variable names
+#'
+#' Useful in a an apply loop when associations should be tested
+#' between many variables in a data frame.
+#'
+#' @param data a data frame as input
+#' @param sel parsed to dplyr::select(). To include/exclude variables.
+#'
+#' @return a character value matrix with two columns, containing all possible pairs of variable names
+#' @export
+#'
+#' @examples
+#' variable_pair_combinations(immune_data, sel = -c(Sex, Frailty.index, Batch))
+variable_pair_combinations <- function(data, sel = tidyselect::everything()){
+  selected.vars <- names(dplyr::select(data, {{sel}}))
+  # Create all possible pairs of columns:
+  t(utils::combn(selected.vars, m=2))
+}

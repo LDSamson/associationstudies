@@ -2,8 +2,7 @@
 % Please edit documentation in R/RFanalysis.R
 \name{RFanalysis}
 \alias{RFanalysis}
-\title{Function to perform Random Forest analysis
-Note: dataset is expected to be in "wide" format for this function.}
+\title{Function to perform Random Forest analysis}
 \usage{
 RFanalysis(
   data,
@@ -37,6 +36,5 @@ RFanalysis(
 a randomForest object
 }
 \description{
-Function to perform Random Forest analysis
 Note: dataset is expected to be in "wide" format for this function.
 }
