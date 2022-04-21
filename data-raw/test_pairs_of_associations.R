@@ -1,5 +1,5 @@
 # test whether pairs of associations can also bet tested effectively with
-# the association_study_wide function
+# the test_association function
 
 # load data and functions from chapter 6 for these tests
 
@@ -25,7 +25,7 @@ b <- apply(
 base_r_version <- apply(all.pairs.to.test,
                         MARGIN = 1,
                         FUN = function(x){
-                          association_study_wide(
+                          test_association(
                             dataset = data.to.analyze,
                             response.var = x[1],
                             explanatory.var = x[2],
@@ -38,7 +38,7 @@ base_r_version <- apply(all.pairs.to.test,
 # new version, pmap_dfr:
 pairs <- as.data.frame(all.pairs.to.test)
 a <- function(){pmap_dfr(pairs,
-                         function(V1, V2) {association_study_wide(
+                         function(V1, V2) {test_association(
                            dataset = data.to.analyze,
                            response.var = V1,
                            explanatory.var = V2,
@@ -53,7 +53,7 @@ mbm <- microbenchmark::microbenchmark(
   base = apply(all.pairs.to.test,
                MARGIN = 1,
                FUN = function(x){
-                 association_study_wide(
+                 test_association(
                    dataset = data.to.analyze,
                    response.var = x[1],
                    explanatory.var = x[2],
@@ -63,7 +63,7 @@ mbm <- microbenchmark::microbenchmark(
                }) %>%
     do.call("rbind", .),
   alt = pmap_dfr(pairs,
-                 function(V1, V2) {association_study_wide(
+                 function(V1, V2) {test_association(
                    dataset = data.to.analyze,
                    response.var = V1,
                    explanatory.var = V2,
@@ -89,6 +89,6 @@ summary(mbm)
 
 
 # C/ old version is slowest. Both base version and pmap version have similar performance.
-# thus, don't use function perform.single.pair.test anymore: use association_study_wide.
+# thus, don't use function perform.single.pair.test anymore: use test_association.
 
 

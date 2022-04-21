@@ -13,7 +13,7 @@ response.vars <- names(data.to.test)[!names(data.to.test) %in% c(stratum, explan
 
 ## maybe use association_study wide and loop this over a column named condition?
 # attempt to reduce the code in package
-thesisfunctions::association_study_wide(data.to.test,
+thesisfunctions::test_association(data.to.test,
                        response.var =  "STAT1_B cells",
                        explanatory.var =  "FI.2017",
                        stratum = "Phosflow.batch")
@@ -22,7 +22,7 @@ data.to.test.long$condition
 data.to.test.long <- selected.phosflow.baseline.data %>%
   select(ID, Sex, FI.2017, condition, Unstimulated, Phosflow.batch)
 a <- lapply(unique(data.to.test.long[["condition"]]), FUN = function(x){
-  df <- thesisfunctions::association_study_wide(
+  df <- thesisfunctions::test_association(
     data.to.test.long %>% filter(condition == x),
     response.var =  "Unstimulated",
     explanatory.var =  "FI.2017",
@@ -35,7 +35,7 @@ a <- lapply(unique(data.to.test.long[["condition"]]), FUN = function(x){
 b <- as.data.frame(do.call("rbind", a))
 library(purrr)
 a <- map_dfr(unique(data.to.test.long[["condition"]]), .f = function(x){
-  df <- thesisfunctions::association_study_wide(
+  df <- thesisfunctions::test_association(
     data.to.test.long %>% filter(condition == x),
     response.var =  "Unstimulated",
     explanatory.var =  "FI.2017",
@@ -46,7 +46,7 @@ a <- map_dfr(unique(data.to.test.long[["condition"]]), .f = function(x){
 }
 )
 
-thesisfunctions::association_study_wide(data.to.test,
+thesisfunctions::test_association(data.to.test,
                                         response.var =  "STAT1_B cells",
                                         explanatory.var =  "FI.2017",
                                         stratum = "Phosflow.batch")
@@ -54,7 +54,7 @@ response.vars <- "condition"
 data <- data.to.test.long
 a <- lapply(unique(data[[response.vars]]),
             FUN = function(x) filter(data, condition == x))
-b <- map_dfr(a, thesisfunctions::association_study_wide,
+b <- map_dfr(a, thesisfunctions::test_association,
         response.var =  "Unstimulated",
         explanatory.var =  "FI.2017",
         stratum = "Phosflow.batch"
@@ -64,7 +64,7 @@ b["Response var"] <-
 
 association_study_long <- function(data, response.names, ...){
   map_dfr(unique(data[[response.names]]), .f = function(x){
-    df <- thesisfunctions::association_study_wide(
+    df <- thesisfunctions::test_association(
       data %>% filter(condition == x), ...)
     df["Response var"] <- x
     df
@@ -81,7 +81,7 @@ b <- association_study_long(
 
 library(purrr)
 a <- map_dfr(response.vars,
-  .f = ~thesisfunctions::association_study_wide(
+  .f = ~thesisfunctions::test_association(
   dataset = data.to.test %>% filter(Sex == "Men"),
   response.var =  .,
   explanatory.var =  "FI.2017",
@@ -108,7 +108,7 @@ phosflow_assoc_baseline_fi_men
 
 
 
-association_study_wide()
+test_association()
 
 unite_vars <- function(x, vars, colname = "block", ...){
  # x <- data.to.test
@@ -119,7 +119,7 @@ unite_vars <- function(x, vars, colname = "block", ...){
   return(data.to.return)
 }
 
-association_study_wide <- function(
+test_association <- function(
     dataset,
     response.var,
     explanatory.var,

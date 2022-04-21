@@ -31,7 +31,7 @@ association_study_long2 <- function(data, response.names, ...){
   response.names <- "cellnames"
   x <- "Tregs"
   purrr::map_dfr(unique(data[[response.names]]), .f = function(x){
-    df <- association_study_wide(
+    df <- test_association(
       data[data[[response.names]] == x, ],
       response.var = "value",
       explanatory.var = "Frailty.index",
@@ -52,7 +52,7 @@ b <- association_study_long(immune_data_long,
   mutate(p.value = round(p.value, digits = 1)) %>%
   BH_selection()
 
-c <- map_dfr(cell_vars, .f = ~association_study_wide(
+c <- map_dfr(cell_vars, .f = ~test_association(
   immune_data,
   response.var = .,
   explanatory.var = "Frailty.index",

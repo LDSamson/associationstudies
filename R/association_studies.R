@@ -100,10 +100,14 @@ association_study <- function(subset.parameter,
   return(results.to.return)
 }
 
-#' Association studies
+#' Test association
 #'
-#' Association study function that can be used with data in wide format. It uses
-#' permutation testing functions from the coin package.
+#' Function that can be used to test an association between two variables.
+#' It uses permutation testing functions from the coin package.
+#' It gives a consistent data frame output.
+#'
+#' Note: Errors can occur when some groups within the blocking variables
+#' contain less than two observations.
 #'
 #' @param response.var response variable (for example Granulocytes_count)
 #' @param dataset dataset (data frame format, original: data.wide)
@@ -115,7 +119,7 @@ association_study <- function(subset.parameter,
 #'
 #' @return data frame with results
 #' @export
-association_study_wide <- function(
+test_association <- function(
     dataset,
     response.var,
     explanatory.var,
@@ -228,7 +232,7 @@ associations_per_ID <- function(
 ## original dataset: immune.trajectories.long.endpoint
 #' perform paired testing of associations.
 #'
-#' Note: deprecated function. This function can be completely replaced by association_study_wide.
+#' Note: deprecated function. This function can be completely replaced by test_association.
 #' Only thing missing is the check of blocks, whether blocks with n <= 2
 #' observations exists.
 #'
@@ -312,9 +316,9 @@ perform_single_pair_test <- function(
 
 #' Association studies in long format
 #'
-#' This function, in combination with \code{\link{association_study_wide}},
+#' This function, in combination with \code{\link{test_association}},
 #' can basically replace the function '\code{\link{association_study}}'.
-#' I think \code{\link{association_study_wide}} is more intuitive,
+#' I think \code{\link{test_association}} is more intuitive,
 #' and this function is just a small wrapper
 #' that you can use when data is in long format, mimicking behavior
 #' of \code{\link{association_study}}.
@@ -325,14 +329,14 @@ perform_single_pair_test <- function(
 #'
 #' @param data data frame to use
 #' @param response.names character value of column that contains all the names of the response values that need to be investigated separately
-#' @param ... other values will be parsed to \code{\link{association_study_wide}}
+#' @param ... other values will be parsed to \code{\link{test_association}}
 #'
 #' @return data frame with results as output
 #' @export
 #'
 association_study_long <- function(data, response.names, ...){
   purrr::map_dfr(unique(data[[response.names]]), .f = function(x){
-    df <- association_study_wide(data[data[[response.names]] == x, ], ...)
+    df <- test_association(data[data[[response.names]] == x, ], ...)
     df["Response var"] <- x
     df
   })
