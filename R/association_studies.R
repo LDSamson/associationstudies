@@ -152,7 +152,8 @@ test_association <- function(
                                         )
     )
     global.rho <- weighted_average_rho(data = data.to.analyze, x = response.var,
-                                       y = explanatory.var, stratum = "block")
+                                       y = explanatory.var,
+                                       stratum = if(is.null(stratum)) NULL else "block")
   }
   results.to.return <- list(
     "Response var"    = response.var,
