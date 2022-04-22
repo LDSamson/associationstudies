@@ -84,3 +84,30 @@ variable_pair_combinations <- function(data, sel = tidyselect::everything()){
   # Create all possible pairs of columns:
   t(utils::combn(selected.vars, m=2))
 }
+
+
+#' Check observations per block
+#'
+#' Small function to check the number of observations per block/stratum.
+#' Output is a data frame, with the strata with smallest number of observations on top
+#'
+#' @param data a data frame
+#' @param blocks character vector containing all variables to block by
+#'
+#' @return a data frame with number of observations per block
+#' @export
+#'
+#' @examples
+#' check_blocks(immune_data, c("Sex", "Batch"))
+#'
+check_blocks <- function(data, blocks){
+  block_name <- paste(blocks, collapse = "_")
+  block_data <- data %>%
+   tidyr::unite( col = {{block_name}}, blocks) %>%
+    # across and all_of are necessary to use the dynamic vector name
+    # "block_name" in the group_by function
+    dplyr::group_by(dplyr::across(tidyselect::all_of(block_name))) %>%
+    dplyr::summarize(observations = dplyr::n()) %>%
+    dplyr::arrange(observations)
+print(block_data)
+}

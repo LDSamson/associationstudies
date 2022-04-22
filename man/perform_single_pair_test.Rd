@@ -21,7 +21,7 @@ perform_single_pair_test(
 \item{stratum}{character value. blocking vars to use}
 }
 \description{
-Note: deprecated function. This function can be completely replaced by association_study_wide.
+Note: deprecated function. This function can be completely replaced by test_association.
 Only thing missing is the check of blocks, whether blocks with n <= 2
 observations exists.
 }

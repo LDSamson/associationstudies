@@ -178,7 +178,7 @@ test_association <- function(
 #'
 #' @param x Subsets in which comparison should be made
 #' @param dataset a data frame
-#' @param comparison.var comparison var (for example flowratio)
+#' @param comparison.var comparison var (for example Age)
 #' @param nresample times to resample for permutation test (see coin::approximate)
 #' @importFrom rlang .data
 #'
@@ -314,7 +314,7 @@ perform_single_pair_test <- function(
   return(data.to.return.i)
 }
 
-#' Association studies in long format
+#' Perform association study
 #'
 #' This function, in combination with \code{\link{test_association}},
 #' can basically replace the function '\code{\link{association_study}}'.

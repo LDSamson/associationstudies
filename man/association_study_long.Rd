@@ -2,7 +2,7 @@
 % Please edit documentation in R/association_studies.R
 \name{association_study_long}
 \alias{association_study_long}
-\title{Association studies in long format}
+\title{Perform association study}
 \usage{
 association_study_long(data, response.names, ...)
 }
@@ -11,15 +11,15 @@ association_study_long(data, response.names, ...)
 
 \item{response.names}{character value of column that contains all the names of the response values that need to be investigated separately}
 
-\item{...}{other values will be parsed to \code{\link{association_study_wide}}}
+\item{...}{other values will be parsed to \code{\link{test_association}}}
 }
 \value{
 data frame with results as output
 }
 \description{
-This function, in combination with \code{\link{association_study_wide}},
+This function, in combination with \code{\link{test_association}},
 can basically replace the function '\code{\link{association_study}}'.
-I think \code{\link{association_study_wide}} is more intuitive,
+I think \code{\link{test_association}} is more intuitive,
 and this function is just a small wrapper
 that you can use when data is in long format, mimicking behavior
 of \code{\link{association_study}}.
