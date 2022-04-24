@@ -1,14 +1,23 @@
-# test whether pairs of associations can also bet tested effectively with
+# During my PhD I wrote several functions with the task to loop over variables in a dataset.
+# these functions were only slightly different from each other; therefore
+# they are difficult to maintain.
+# some of these functions are: perform.single.pair.test ,
+# all.pairs.to.test, associations.per.ID
+# This script below was used to test several different ways to loop over data, and
+# to check whether the number of looping functions can be reduced effectively
+# so that the package is better to maintain. The function test_association
+# shold become the core function of the package.
+
+# I thus check whether pairs of associations can also be tested effectively with
 # the test_association function
 
 # load data and functions from chapter 6 for these tests
-
 data.to.analyze <- biomarker.slope.auc.data %>%
   select(ID, Batch, Biomarker, AUC.scaled) %>%
   pivot_wider(names_from = Biomarker, values_from = AUC.scaled)
 all.pairs.to.test <- variable_pair_combinations(data.to.analyze, -c(ID, Batch))
 
-# old version
+# old version of loop
 b <- apply(
   all.pairs.to.test,
   MARGIN = 1,
@@ -32,9 +41,10 @@ base_r_version <- apply(all.pairs.to.test,
                             n.resample = 10^3
                           )
                         }) %>%
-  do.call("rbind", .) }
+  do.call("rbind", .)
 
 # new version, pmap_dfr:
+all.pairs.to.test <- variable_pair_combinations(data.to.analyze, -c(ID, Batch))
 pairs <- as.data.frame(all.pairs.to.test)
 a <- function(){pmap_dfr(pairs,
                          function(V1, V2) {test_association(
@@ -89,5 +99,7 @@ summary(mbm)
 
 # C/ old version is slowest. Both base version and pmap version have similar performance.
 # thus, don't use function perform.single.pair.test anymore: use test_association.
+#
+# all.pairs.to.test should be analyzed and performed
 
 
