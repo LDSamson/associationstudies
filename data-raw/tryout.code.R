@@ -259,3 +259,38 @@ results.to.return.i <- c(
   ## Return results:
   return(results.to.return)
 }
+
+
+test_that("Error when low number of observations in a block", {
+  expect_error(association_study_long(head(immune_data_long, 40), "name", "value", "Frailty.index", "Batch"))
+  test_outcome <- association_study_long(immune_data_long, "name", "value", "Frailty.index")
+  expect_equal(is.data.frame(test_outcome), TRUE)
+  expect_equal(nrow(test_outcome), 20)
+  expect_equal(names(test_outcome), tab_names)
+})
+
+response.names <- "name"
+block <- "Batch"
+
+##
+
+dataset <- head(immune_data, n=10)
+response.var <- "B cells naive"
+explanatory.var <- "Frailty.index"
+test_association(head(immune_data, n=25), "Eosinophils", "Frailty.index", "Batch")
+# ! all variables of B cells naive have a size of zero -> error!
+# should maybe be addressed in function that calculates rho values.
+
+data.to.test <- as.data.frame(head(immune_data_long, n = 500)) %>%
+  dplyr::filter(name == "Eosinophils")
+association_study_long(head(immune_data_long, n = 500), response.names = "name",
+                       response.var = "value", explanatory.var = "Frailty.index")
+stats::cor(data.to.test$value, data.to.test$Frailty.index, method = "spearman")
+test_association(data.to.test, "value", "Frailty.index", "Batch")
+t(table(data.to.test$Batch, data.to.test$value))
+
+weighted_average_rho(data.to.test, "value", "Frailty.index", "Batch")
+data <- data.to.test
+x <- "value"
+y <- "Frailty.index"
+stratum = "Batch"

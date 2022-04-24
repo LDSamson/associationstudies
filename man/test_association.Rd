@@ -37,4 +37,8 @@ It gives a consistent data frame output.
 \details{
 Note: Errors can occur when some groups within the blocking variables
 contain less than two observations.
+Note2: missing values are (silently) deleted.
+}
+\examples{
+test_association(immune_data, "Tregs", "Frailty.index", "Batch")
 }

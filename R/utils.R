@@ -52,7 +52,7 @@ addq <- function(x){paste0("`", x, "`")}
 #'
 #' @param x a data frame
 #' @param vars character vector, with values to unite
-#' @param colname name of the newly created column
+#' @param colname name new column
 #' @param ...  parsed to underlying function tidyr::unite
 #'
 #' @return  data frame where multiple columns are united
@@ -85,29 +85,55 @@ variable_pair_combinations <- function(data, sel = tidyselect::everything()){
   t(utils::combn(selected.vars, m=2))
 }
 
-
-#' Check observations per block
+#' count observations
 #'
-#' Small function to check the number of observations per block/stratum.
+#' Count observations per group in an association study.
 #' Output is a data frame, with the strata with smallest number of observations on top
 #'
-#' @param data a data frame
-#' @param blocks character vector containing all variables to block by
+#' @param data data.frame
+#' @param stratum any blocking vars. can be empty
+#' @param response.names any response names/other vars to block by. Can be empty
 #'
-#' @return a data frame with number of observations per block
+#' @return a data frame with number of observations
 #' @export
+#' @importFrom rlang .data
 #'
 #' @examples
-#' check_blocks(immune_data, c("Sex", "Batch"))
+#' count_observations(immune_data, stratum = c("Batch", "Sex"))
+count_observations <- function(data, stratum = NULL, response.names = NULL){
+  if(!all(c(stratum, response.names) %in% names(data))) stop(
+    "stratum or response.names not found in dataset")
+  observations <- data %>%
+    # tidyselect helpers since we use dynamic vector names:
+    dplyr::group_by(dplyr::across(tidyselect::any_of(c(stratum, response.names)))) %>%
+    dplyr::summarize(n = dplyr::n(), .groups = "drop_last") %>%
+    dplyr::arrange(.data$n)
+  if(!is.null(c(stratum, response.names))){
+    colname <- paste(stratum, response.names, collapse = " ")
+    colname <- gsub(" ", "_", trimws(colname))
+    observations <- observations %>%
+      tidyr::unite(col = {{colname}},
+                   tidyselect::any_of(c(response.names, stratum)))
+  }
+  observations
+}
+
+#' Check low group numbers
 #'
-check_blocks <- function(data, blocks){
-  block_name <- paste(blocks, collapse = "_")
-  block_data <- data %>%
-   tidyr::unite( col = {{block_name}}, blocks) %>%
-    # across and all_of are necessary to use the dynamic vector name
-    # "block_name" in the group_by function
-    dplyr::group_by(dplyr::across(tidyselect::all_of(block_name))) %>%
-    dplyr::summarize(observations = dplyr::n()) %>%
-    dplyr::arrange(observations)
-print(block_data)
+#' Check whether number of observations are too low in some groups and return an error if so
+#'
+#' @param data data.frame
+#' @param stratum any blocking vars. can be empty
+#' @param response.names any response names/other vars to block by. Can be empty
+#'
+#' @return no return, unless too low observations, then an error will occur
+#' @export
+#'
+check_low_group_numbers <- function(data, stratum = NULL, response.names = NULL){
+  obs_data <- count_observations(data, stratum = stratum, response.names = response.names)
+  if(any(obs_data$n <2)) stop(paste0(
+    "Number of observations are too low (<2) in some groups. Use the function count_observations(",
+    paste(c("data", stratum,response.names), collapse = ", "),
+    ") to check the observations per group"
+  ))
 }

@@ -11,7 +11,7 @@ unite_vars(x, vars, colname = "block", ...)
 
 \item{vars}{character vector, with values to unite}
 
-\item{colname}{name of the newly created column}
+\item{colname}{name new column}
 
 \item{...}{parsed to underlying function tidyr::unite}
 }

@@ -28,6 +28,11 @@ weighted_average_rho <-function(data, x, y, stratum = "block"){
                                 data.frame(rho.hat=rho.b, block = b,
                                            sample.size=nrow(data.set.b)))
     }
+    if(any(is.na(estimates.of.rho$rho.hat))){
+      warning("in some groups rho cannot be estimated. these groups will be ignored when calculating weighted average rho")
+      estimates.of.rho <- stats::na.omit(estimates.of.rho)
+    }
+
     # Now, calculate weighted average from the individual rho's per block:
     global.rho <- sum(estimates.of.rho$rho.hat*estimates.of.rho$sample.size)/
       sum(estimates.of.rho$sample.size)

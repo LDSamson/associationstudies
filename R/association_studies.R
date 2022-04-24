@@ -19,6 +19,9 @@
 #'
 #' @return data frame with results
 #' @export
+#'
+#' @examples
+#' test_association(immune_data, "Tregs", "Frailty.index", "Batch")
 test_association <- function(
     dataset,
     response.var,
@@ -30,13 +33,20 @@ test_association <- function(
     dplyr::select(tidyselect::all_of(c(response.var, explanatory.var, stratum))) %>%
     stats::na.omit() %>%
     droplevels()
+  check_low_group_numbers(data.to.analyze, stratum)
   string_formula <- paste0(addq(response.var), "~", addq(explanatory.var))
   if(!is.null(stratum)){
     data.to.analyze <- unite_vars(data.to.analyze, vars = stratum, colname = "block")
     string_formula <- paste0(string_formula, "|block")
-  }
+    }
   formula.to.test <- stats::as.formula(string_formula)
 
+  if(!is.numeric(data.to.analyze[[response.var]])){stop("At the moment, only numerical response variables are supported.")}
+
+  if(is.character(data.to.analyze[[explanatory.var]])){
+    message("Warning: The explanatory variable is of type character which cannot be used in analyses.\nIt will be converted to a factor and used in a wilcox_test")
+    data.to.analyze[[explanatory.var]] <- factor(data.to.analyze[[explanatory.var]])
+  }
 
   if(is.factor(data.to.analyze[[explanatory.var]])){
     ## test results when comparing a continuous variable between groups/factor:
@@ -98,7 +108,7 @@ test_association <- function(
 #' @export
 #'
 association_study_long <- function(data, response.names, ...){
-  #check_low_group_numbers(data, stratum, response.names)
+ # check_low_group_numbers(data, stratum, response.names)
   purrr::map_dfr(unique(data[[response.names]]), .f = function(x){
     df <- test_association(data[data[[response.names]] == x, ], ...)
     df["Response.var"] <- x
