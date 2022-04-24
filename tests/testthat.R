@@ -1,4 +1,4 @@
 library(testthat)
-library(thesisfunctions)
+library(associationstudies)
 
-test_check("thesisfunctions")
+test_check("associationstudies")

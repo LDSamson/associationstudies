@@ -1,4 +1,4 @@
-# library(thesisfunctions)
+# library(associationstudies)
 
 tab_names <- c('Response.var','Explanatory.var','sample.size',
                'stratified.by','n.resample','Method','Direction', 'rho', 'p.value')

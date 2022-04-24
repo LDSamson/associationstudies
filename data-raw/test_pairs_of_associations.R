@@ -3,7 +3,6 @@
 
 # load data and functions from chapter 6 for these tests
 
-library(thesisfunctions)
 data.to.analyze <- biomarker.slope.auc.data %>%
   select(ID, Batch, Biomarker, AUC.scaled) %>%
   pivot_wider(names_from = Biomarker, values_from = AUC.scaled)

@@ -2,7 +2,7 @@
 library(tidyr)
 library(dplyr)
 library(purrr)
-library(thesisfunctions)
+library(associationstudies)
 cell_vars <- names(immune_data)[!names(immune_data) %in%
                                   c("Sex", "Frailty.index", "Batch")]
 
