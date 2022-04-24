@@ -75,7 +75,7 @@ test_association <- function(
     "n.resample"      = n.resample,
     "Method"          = test.results@method,
     "Direction"       = sign(coin::statistic(test.results)),
-    "rho"             = "",
+    "rho"             = NA_integer_,
     "p.value"         = as.numeric(coin::pvalue(test.results))
     )
   ## Add rho to outcome, if applicable:
@@ -101,16 +101,15 @@ test_association <- function(
 #' Note 2: all blocks should contain enough observations.
 #'
 #' @param data data frame to use
-#' @param response.names character value of column that contains all the names of the response values that need to be investigated separately
+#' @param expl_var_names character value of column that contains all the names of the response values that need to be investigated separately
 #' @param ... other values will be parsed to \code{\link{test_association}}
 #'
 #' @return data frame with results as output
 #' @export
 #'
-association_study_long <- function(data, response.names, ...){
- # check_low_group_numbers(data, stratum, response.names)
-  purrr::map_dfr(unique(data[[response.names]]), .f = function(x){
-    df <- test_association(data[data[[response.names]] == x, ], ...)
+association_study_long <- function(data, expl_var_names, ...){
+  purrr::map_dfr(unique(data[[expl_var_names]]), .f = function(x){
+    df <- test_association(data[data[[expl_var_names]] == x, ], ...)
     df["Response.var"] <- x
     df
   })
