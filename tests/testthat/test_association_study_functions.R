@@ -26,6 +26,7 @@ test_that("Error when low number of observations in a block", {
                                 "Tregs", "Frailty.index", c("Sex", "Batch")))
 })
 
+
 #### Test association_study_long:
 immune_data_long <- immune_data %>%
   tidyr::pivot_longer(-c(Batch, Sex, Frailty.index))
@@ -38,3 +39,18 @@ test_that("Unexpected output", {
   expect_equal(names(test_outcome), tab_names)
 })
 
+test_that("Error when low number of observations in a block", {
+  expect_error(association_study_long(head(immune_data_long, 40),
+                                      "name", "value", "Frailty.index", "Batch"))
+})
+
+
+## test association_study:
+cols_to_analyze <- unique(immune_data_long$name)
+test_that("Unexpected output", {
+  test_outcome <- association_study(immune_data,
+                                         cols_to_analyze, "Frailty.index")
+  expect_equal(is.data.frame(test_outcome), TRUE)
+  expect_equal(nrow(test_outcome), 20)
+  expect_equal(names(test_outcome), tab_names)
+})

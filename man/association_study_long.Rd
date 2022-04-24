@@ -4,12 +4,12 @@
 \alias{association_study_long}
 \title{Perform association study}
 \usage{
-association_study_long(data, response.names, ...)
+association_study_long(data, expl_var_names, ...)
 }
 \arguments{
 \item{data}{data frame to use}
 
-\item{response.names}{character value of column that contains all the names of the response values that need to be investigated separately}
+\item{expl_var_names}{character value of column that contains all the names of the response values that need to be investigated separately}
 
 \item{...}{other values will be parsed to \code{\link{test_association}}}
 }

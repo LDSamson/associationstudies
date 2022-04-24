@@ -44,7 +44,10 @@ test_association <- function(
   if(!is.numeric(data.to.analyze[[response.var]])){stop("At the moment, only numerical response variables are supported.")}
 
   if(is.character(data.to.analyze[[explanatory.var]])){
-    message("Warning: The explanatory variable is of type character which cannot be used in analyses.\nIt will be converted to a factor and used in a wilcox_test")
+    message(paste0("Warning: The explanatory variable '",
+                   explanatory.var,
+                   "' is of type character which cannot be used in analyses.",
+                   "\nIt will be converted to a factor and used in a wilcox_test"))
     data.to.analyze[[explanatory.var]] <- factor(data.to.analyze[[explanatory.var]])
   }
 
@@ -112,5 +115,33 @@ association_study_long <- function(data, expl_var_names, ...){
     df <- test_association(data[data[[expl_var_names]] == x, ], ...)
     df["Response.var"] <- x
     df
+  })
+}
+
+#' Perform association study
+#'
+#' This function is a small wrapper around the function \code{\link{test_association}}.
+#' It tests associations between an explanatory variable and multiple response
+#' variables. The response variables are columns in a data frame and their
+#' colum names should be given in a character string.
+#'
+#' Note: Response variables should be of the same type
+#' (e.g. all numerical, all categorical).
+#' Note 2: all blocks should contain enough observations.
+#'
+#' @param data data frame to use
+#' @param expl_var_names
+#' character value of all column names that need to be compared to the response
+#' variable. This will we looped over the variable "explanatory.var" in the
+#' function \code{\link{test_association}}
+#' @param response.var response variable. Will be parsed to  \code{\link{test_association}}
+#' @param ... other values will be parsed to \code{\link{test_association}}
+#'
+#' @return data frame with results as output
+#' @export
+#'
+association_study <- function(data, expl_var_names, response.var, ...){
+  purrr::map_dfr(expl_var_names, .f = function(x){
+    test_association(data, response.var = response.var,  explanatory.var = x, ...)
   })
 }
