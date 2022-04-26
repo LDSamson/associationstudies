@@ -1,6 +1,8 @@
 #' Function to perform Random Forest analysis
 #'
 #' Note: dataset is expected to be in "wide" format for this function.
+#' Note2: This function is a work in progress and still needs some more testing.
+#' Use with caution.
 #'
 #' @param data dataframe to use (original: ISA.cellular)
 #' @param subset whether or not to use subset of data
@@ -42,7 +44,7 @@ RFanalysis <- function(data,
   if(isTRUE(select.best.mtry)){
     ### select the mtry that gives the lowest RMSE:
     set.seed(2019)
-    optimize.RF <<- caret::train(form = RF.formula, data = data,
+    optimize.RF <- caret::train(form = RF.formula, data = data,
                                  method="rf",
                                  ntree=500,
                                  tuneGrid = data.frame(mtry = 5:20),
@@ -52,12 +54,12 @@ RFanalysis <- function(data,
     # mtry with the lowest RMSE found after repeated 'out of bag' bootstrapping:
     best.mtry <- optimize.RF$bestTune$mtry
     set.seed(2019)
-    RFOutcome <<- randomForest::randomForest(formula = RF.formula, data = data,
+    RFOutcome <- randomForest::randomForest(formula = RF.formula, data = data,
                                ntree=ntree,importance=TRUE,
                                mtry = best.mtry, ...)
   }else{
     set.seed(2019)
-    RFOutcome <<- randomForest::randomForest(formula = RF.formula, data = data,
+    RFOutcome <- randomForest::randomForest(formula = RF.formula, data = data,
                                ntree=ntree,importance=TRUE, ...)
     ## mtry=ncol(data)-1 # other argument to use/originally used?
   }

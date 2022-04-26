@@ -37,4 +37,6 @@ a randomForest object
 }
 \description{
 Note: dataset is expected to be in "wide" format for this function.
+Note2: This function is a work in progress and still needs some more testing.
+Use with caution.
 }
