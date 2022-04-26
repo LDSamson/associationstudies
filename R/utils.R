@@ -79,7 +79,10 @@ unite_vars <- function(x, vars, colname = "block", ...){
 #'
 #' @examples
 #' variable_pair_combinations(immune_data, sel = -c(Sex, Frailty.index, Batch))
-variable_pair_combinations <- function(data, sel = tidyselect::everything()){
+variable_pair_combinations <- function(
+    data,
+    sel = tidyselect::everything()
+    ){
   selected.vars <- names(dplyr::select(data, {{sel}}))
   # Create all possible pairs of columns:
   t(utils::combn(selected.vars, m=2))
@@ -100,7 +103,11 @@ variable_pair_combinations <- function(data, sel = tidyselect::everything()){
 #'
 #' @examples
 #' count_observations(immune_data, stratum = c("Batch", "Sex"))
-count_observations <- function(data, stratum = NULL, response.names = NULL){
+count_observations <- function(
+    data,
+    stratum = NULL,
+    response.names = NULL
+    ){
   if(!all(c(stratum, response.names) %in% names(data))) stop(
     "stratum or response.names not found in dataset")
   observations <- data %>%
@@ -129,7 +136,11 @@ count_observations <- function(data, stratum = NULL, response.names = NULL){
 #' @return no return, unless too low observations, then an error will occur
 #' @export
 #'
-check_low_group_numbers <- function(data, stratum = NULL, response.names = NULL){
+check_low_group_numbers <- function(
+    data,
+    stratum = NULL,
+    response.names = NULL
+    ){
   obs_data <- count_observations(data, stratum = stratum, response.names = response.names)
   if(any(obs_data$n <2)) stop(paste0(
     "Number of observations are too low (<2) in some groups. Use the function count_observations(",

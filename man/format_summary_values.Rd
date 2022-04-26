@@ -9,7 +9,8 @@ format_summary_values(
   n.digits = 3,
   na.rm = FALSE,
   conf.level = 0.95,
-  latex_output = TRUE
+  latex_output = TRUE,
+  ...
 )
 }
 \arguments{
@@ -24,6 +25,8 @@ format_summary_values(
 \item{latex_output}{Logical, Whether dollar signs should be used around the output string,
 for latex formatting in knitr::kable. Make sure to set escape=FALSE in
 knitr::kable function when using this.}
+
+\item{...}{other parameters, parsed onto function gm_mean}
 }
 \value{
 Character value to input in kable function
@@ -34,10 +37,54 @@ a (latex) table, such as the output of knitr::kable().
 Aims to give a publication-ready result
 }
 \details{
-Inspired by this post: # https://stackoverflow.com/questions/44325464/how-to-control-knitr-kable-scientific-notation
+Inspired by \href{https://stackoverflow.com/questions/44325464/how-to-control-knitr-kable-scientific-notation}{this post}.
+
+Standard zeros are omitted from the data and mean values are calculated
+as follows: \code{exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))}.
+Side effect can be that, when there are many zeros in the data,
+the geometric mean could fall outside the confidence interval, since
+zeros are not omitted from length(x). To prevent this, you can use a
+different way to handle zeros (for example, \code{offset = 1}).
 }
 \examples{
 data <- abs(rnorm(n = 100, mean = 10000, sd = 10000))
 format_summary_values(data)
+
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+# create dummy data, with some variables being, just for illustration of this
+# function:
+table_data <- immune_data \%>\%
+  mutate(across(c(Neutrophils, Monocytes), .fns = ~(.+1)*10^5))
+
+summ_table <- immune_data \%>\%
+  group_by(Sex) \%>\%
+  summarize(
+    Neutrophils = format_summary_values(Neutrophils),
+    Tregs = format_summary_values(Tregs)
+  )
+knitr::kable(summ_table) \%>\%
+  kableExtra::kable_styling()
+
+# The function is also helpful to create many summary values at once:
+library(tidyr)
+table_data_long <- immune_data \%>\%
+  mutate(across(c(Neutrophils, Monocytes), .fns = ~(.+1)*10^5)) \%>\%
+  select(-c(Sex, Batch, Frailty.index)) \%>\%
+  tidyr::pivot_longer(col = everything())
+
+summ_table_long <- table_data_long \%>\%
+  group_by(name) \%>\%
+  summarize(
+    "Summary value" = format_summary_values(value, offset = 1, n.digits = 2)
+  )
+# offset gives better results when geomean and confidence interval are calculated
+# and there are many zeros in the data. See details of the function gm_mean()
+# for more information.
+
+knitr::kable(summ_table_long) \%>\%
+  kableExtra::kable_styling()
 
 }
