@@ -9,7 +9,7 @@ The most important functions in this package are those that perform permutation 
 Other functions included in this package are functions facilitating prediction using random Forest, 
 and functions that help to create publication-ready summary tables.
 
-**Important: This is still a work in progress. Failures can be expected. More functions will be added in the future. Furthermore, I have to add more unit tests to test robustness of some functions**. 
+**Important: This is still a work in progress, use at your own risk. Failures can be expected. More functions will be added in the future. Furthermore, I have to add more unit tests to test robustness of some functions**. 
 
 
 To do: 
