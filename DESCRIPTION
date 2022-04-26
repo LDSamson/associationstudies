@@ -4,7 +4,7 @@ Version: 0.0.0.9000
 Authors@R: 
     person("Leonard Daniël", "Samson", , "l.d.samson@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-6252-7639"))
-Description: This is a collection of functions that I used during my PhD. I used a combination of association studies (using the coin package and permutation testing between many variables, while using a fixed false discovery rate as a cutoff value) and prediction analyses. 
+Description: This is a collection of functions that I used during my PhD. I used a combination of association studies (using the coin package and permutation testing between many variables, while using a fixed false discovery rate as a cutoff value) and prediction analyses. The package is still under development, use it at your own risk. 
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
