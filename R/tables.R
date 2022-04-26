@@ -39,45 +39,47 @@ gm_mean = function(x, na.rm=TRUE, offset = 0, zero.propagate = FALSE, conf.level
 #' Improved version of geomean_conf for latex tables:
 #' Inspired by this post: # https://stackoverflow.com/questions/44325464/how-to-control-knitr-kable-scientific-notation
 #' n.b. dollar signs give math output in kable function
-#' Make sure to set escape=F in kable function!
+#' Make sure to set escape=F in kable function when using latex output!
 #'
-#' @param x numeric value
+#' @param x numeric values that need to be summarized (for now, only geometric mean + confidence interval is supported)
 #' @param n.digits digits to preserve in output
 #' @param na.rm whether or not to remove NA's
 #' @param conf.level confidence interval, standard 0.95
-#' @param scientific.above threshold above which scientific notation should be used
+#' @param latex_output
+#' Logical, Whether dollar signs shold be used around the output string,
+#' for latex formatting in knitr::kable. Make sure to set escape=FALSE in
+#' knitr::kable function when using this.
 #'
 #' @return Character value to input in kable function
 #' @export
+#'
+#' @examples
+#' data <- abs(rnorm(n = 100, mean = 10000, sd = 10000))
+#' format_summary_values(data)
+#'
 format_summary_values <- function(x, n.digits = 3, na.rm = FALSE, conf.level = 0.95,
-                           scientific.above = 10000){
+                           latex_output = TRUE){
   sumvals <- gm_mean(x, na.rm = na.rm, conf.level = conf.level)
+  if(all(is.na(sumvals))) stop("Invalid summary input. Negative numbers included? Check values with function gm_mean()")
   # 'g' in formatC saves space only when necessary:
   mean.formatted <- formatC(sumvals[1],  format = "g", digits = n.digits)
   if(stringr::str_detect(mean.formatted, ".e")){
     exponent <- as.numeric(stringr::str_remove(mean.formatted, ".*e"))
   }else{exponent <- 0}
-  # see link below: force n.digits here:
-  # https://stackoverflow.com/a/12135122/11856430
-  mean.without.base.ten <- format(
-    round(sumvals[1]/10^exponent, digits = n.digits),
+  # force n.digits: https://stackoverflow.com/a/12135122/11856430
+  mean_interval <- format(
+    round(sumvals/10^exponent, digits = n.digits),
     nsmall = n.digits
   )
-  interval <- format(
-    round(sumvals[2:3]/(10^exponent), digits = n.digits),
-    nsmall = n.digits
-  )
-  interval.formatted <- paste0("(", paste0(interval, collapse = "-"), ")")
-
-  if(exponent == 0){# don't display base 10 when format is 10^1:
-    output.string <- paste0("$", mean.without.base.ten, interval.formatted, "$")
-  }else{
-    output.string <- paste0("$", mean.without.base.ten, interval.formatted, "*10^",
-                            exponent, "$")
-  }
-  # n.b. dollar signs give math output in kable function
-  # (set escape=F in kable function!)
-  return(output.string)
+  output.string <- paste0(
+    mean_interval[1],
+    "(",
+    paste0(mean_interval[-1], collapse = "-"),
+    ")"
+    )
+  if(exponent != 0) output.string <- paste0(c(output.string, "*10^", exponent), collapse = "")
+  if(latex_output) output.string <- paste0("$", output.string, "$")
+  output.string
 }
 
 #' Function for table output giving mean plus range:
