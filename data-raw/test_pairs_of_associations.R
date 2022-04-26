@@ -103,3 +103,100 @@ summary(mbm)
 # all.pairs.to.test should be analyzed and performed
 
 
+
+#### tryout scientific notation function below:
+
+#' Scientific notation
+#'
+#' @param x input (vector of numerical values)
+#' @param n.digits number of digits to round the results
+#' @param scientific.above numerical value, above which the scientific notation hsold be used
+#'
+#' @return
+#'
+#' @examples
+scient_func <- function(x, n.digits = 3, scientific.above = 1000){
+  if(is.na(n.digits)) n.digits <- 0
+  if(n.digits<0){
+    stop("Positive integer value needed for n.digits")}
+  if(scientific.above<0){
+    stop("Positive integer value needed for scientific.above")}
+
+  xabs <- format(abs(x), scientific = FALSE)
+  return.original <- abs(x) < scientific.above & abs(x) > 1/scientific.above
+  xchar <- trimws(as.character(xabs))
+  xchar <- gsub("\\.", "", xchar)
+  xchar <- gsub("^0+", "", xchar)
+
+  base <- substr(xchar, 1, 1)
+  digits <- substr(xchar, 2, 2 + n.digits) # one more digit for rounding later
+  base.num <- formatC(as.numeric(paste(base, digits, sep = ".")), digits = n.digits, format = "f")
+  return.vals <- paste0(base.num, "*10^", floor(log10(abs(x))))
+  return.vals[return.original] <- formatC(abs(x[return.original]), digits = n.digits, format = "f")
+  return.vals[x<0] <- paste0("-", return.vals[x<0])
+  return.vals
+}
+#x <- c(20000, 15000, 25000)
+x <- c(20.15389, 2.1, 300, 21678, 2010, -1000, -1.23*10^4, 0.000001234, 0.167)
+scient_func(x, n.digits = 2, scientific.above = 1000)
+sumval_table_format(abs(x))
+
+# other option would be to directly use outcomes of formatC function, change the
+a <- formatC(x, digits = 2, format = "g")
+a <- gsub("e\\+", "*10^", a)
+a <- gsub("e\\-", "*10^-", a)
+a <- gsub("\\^0", "\\^", a)
+n.digits <- 2
+
+a <- scient_func(c(20000, 15000, 25000), n.digits = 2, scientific.above = 1000)
+exponent <- stringr::str_extract(a[1], "\\*.*$")
+if(is.na(exponent)) exponent <- ""
+a <- gsub("\\*.*$", "", a)
+paste0(a[1], "(", a[2], "-", a[3], ")", exponent)
+a <- c(rnorm(100, 10000, 500), 0, 0)
+sumval_table_format(a, n.digits = 2, conf.level = 0.95)
+sumval_table_format(rnorm(100, 10, 4))
+a <- abs(rnorm(100, 1, 0.4))
+gm_mean(a)
+sumval_table_format(a*1000, n.digits = 2)
+formatC(x, digits = 3, format = "g", drop0trailing = TRUE)
+
+## scientific simple
+scient_func_simple <- function(x, n.digits = 3){
+  if(is.na(n.digits)) n.digits <- 0
+  if(n.digits<0){
+    stop("Positive integer value needed for n.digits")}
+  xchar <- formatC(x, format = "g", digits = n.digits, drop0trailing = T)
+  xchar <- gsub("e\\+|e\\+0", "*10^", xchar)
+  xchar <- gsub("e\\-|e\\-0", "*10^-", xchar)
+  xchar
+}
+
+# you can combine exponent here, but edge case problem is when exponent
+# in confidence interval is different from the geomean value exponent!
+x <- rnorm(100, 1000000, 1000000)
+x <- x[x > 0]
+x <- c(20.15389, 2.1, 300, 21678, 2010, -1000, -1.23*10^4, 0.000001234, 0.167)
+x <- abs(x)
+
+gm_table_format <- function(x, n.digits = 2){
+  xchar <- scient_func_simple(gm_mean(x, na.rm = T, conf.level = 0.95),
+                              n.digits = n.digits)
+  exponent <- stringr::str_extract(xchar, "\\*.*$")
+  exponent[is.na(exponent)] <- ""
+  xchar <- gsub("\\*.*$", "", xchar)
+  if(length(unique(exponent)) != 1){
+    exp_val <- as.numeric(gsub("\\*10\\^", "", exponent))
+    exp_val[is.na(exp_val)] <- 0
+    exp_value_diff <- exp_val - exp_val[1]
+    xchar <- formatC(as.numeric(xchar)*10^exp_value_diff, format = "f", digits = n.digits)
+    }
+  return.vals <- paste0(xchar[1], "(", xchar[2], "-", xchar[3], ")", exponent[1])
+  return.vals
+}
+gm_table_format(abs(x), n.digits = 4)
+sumval_table_format(abs(x), n.digits = 3)
+
+# problematic edge case:
+#a <- abs(rnorm(100, 10000, 10000))
+#b <- scient_func_simple(gm_mean(a, conf.level = 0.95))

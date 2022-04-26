@@ -1,26 +1,37 @@
 
-#' Geomean + Conf interval
-#' Function to return geomean values with 95% confidence interval
+#' Geometric mean function
 #'
-#' @param x numeric value
-#' @param n.digits digits to preserve in output
-#' @param na.rm whether or not to remove NA's
-#' @param conf.level confidence interval, standard 0.95
+#' Calculates the geometric mean.
+#' If conf.level is given, a vector will be output containing the geometric mean,
+#' the lower bound confidence value, and the upper bound confidence value.
+#' Loosely based on https://stackoverflow.com/a/25555105/11856430
 #'
-#' @return string with geomean and confidence interval
+#' @param x numeric vector as input
+#' @param na.rm logical, whether missing values are allowed.
+#' @param offset Optional variable: adds a value to the data (1 is often used), so that no more zeros occur.
+#' @param zero.propagate if TRUE, the output will be zero if any value is zero. Overrides offset.
+#' @param conf.level If not missing, the confidence interval will be given together with the geometric mean
+#'
+#' @return a vector of length 1 or, if conf.level is not missing, length 3
 #' @export
-geomean_conf <- function(x, n.digits = 2, na.rm = FALSE, conf.level = 0.95){
+#'
+#' @examples
+#' gm_mean(c(1,4,2,3))
+gm_mean = function(x, na.rm=TRUE, offset = 0, zero.propagate = FALSE, conf.level = NA){
+  if(any(x < 0, na.rm = TRUE)){warning("Non-positive values in 'x'"); return(NaN)}
+  if(zero.propagate && any(x == 0, na.rm = TRUE)) return(0)
   if (sum(is.na(x)) > 0){
     if (na.rm) {x <- stats::na.omit(x)}
-    else {return(NA)}
+      else {return(NA)}
   }
-  if (any(x <= 0)) {
-    warning("Non-positive values in 'x'")
-    return(NA)
+  if(offset > 0 ) x <- x + offset
+  gm <- exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
+  if(!is.na(conf.level)){
+    if(all(x == 0)) gconf <- c(NaN, NaN)
+      else gconf <- exp(stats::t.test(log(x[x > 0]), conf.level = conf.level)$conf.int)
+    gm <- c(gm, gconf)
   }
-  meanvalue <- round(exp(mean(log(x))), digits = n.digits)
-  cinterval <- round(exp(stats::t.test(log(x), conf.level = conf.level)$conf.int), digits = n.digits)
-  return(paste0(meanvalue, " (", cinterval[1], "-", cinterval[2], ")"))
+  gm
 }
 
 #' Geomean + Conf interval
@@ -38,41 +49,31 @@ geomean_conf <- function(x, n.digits = 2, na.rm = FALSE, conf.level = 0.95){
 #'
 #' @return Character value to input in kable function
 #' @export
-geomean_conf_2 <- function(x, n.digits = 3, na.rm = FALSE, conf.level = 0.95,
+format_summary_values <- function(x, n.digits = 3, na.rm = FALSE, conf.level = 0.95,
                            scientific.above = 10000){
-  if (sum(is.na(x)) > 0){
-    if (na.rm) {x <- stats::na.omit(x)}
-    else {return(NA)}
-  }
-  if (any(x <= 0)) {
-    warning("Non-positive values in 'x'")
-    return(NA)
-  }
-  meanvalue <- exp(mean(log(x)))
-  cinterval <- exp(stats::t.test(log(x), conf.level = conf.level)$conf.int)
+  sumvals <- gm_mean(x, na.rm = na.rm, conf.level = conf.level)
   # 'g' in formatC saves space only when necessary:
-  mean.formatted <- formatC(meanvalue,  format = "g", digits = n.digits)
-
+  mean.formatted <- formatC(sumvals[1],  format = "g", digits = n.digits)
   if(stringr::str_detect(mean.formatted, ".e")){
-    decile.factor <- as.numeric(stringr::str_remove(mean.formatted, ".*e"))
-  }else{decile.factor <- 1}
+    exponent <- as.numeric(stringr::str_remove(mean.formatted, ".*e"))
+  }else{exponent <- 0}
   # see link below: force n.digits here:
   # https://stackoverflow.com/a/12135122/11856430
   mean.without.base.ten <- format(
-    round(meanvalue/10^decile.factor, digits = n.digits),
+    round(sumvals[1]/10^exponent, digits = n.digits),
     nsmall = n.digits
   )
   interval <- format(
-    round(cinterval/(10^decile.factor), digits = n.digits),
+    round(sumvals[2:3]/(10^exponent), digits = n.digits),
     nsmall = n.digits
   )
   interval.formatted <- paste0("(", paste0(interval, collapse = "-"), ")")
 
-  if(decile.factor == 1){# don't display base 10 when format is 10^1:
+  if(exponent == 0){# don't display base 10 when format is 10^1:
     output.string <- paste0("$", mean.without.base.ten, interval.formatted, "$")
   }else{
     output.string <- paste0("$", mean.without.base.ten, interval.formatted, "*10^",
-                            decile.factor, "$")
+                            exponent, "$")
   }
   # n.b. dollar signs give math output in kable function
   # (set escape=F in kable function!)
