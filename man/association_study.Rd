@@ -31,3 +31,11 @@ Note: Response variables should be of the same type
 (e.g. all numerical, all categorical).
 Note 2: all blocks should contain enough observations.
 }
+\examples{
+library(dplyr)
+cols_to_analyze <- immune_data \%>\%
+select(-c(Batch, Sex, Frailty.index)) \%>\% names()
+test_outcome <- association_study(immune_data,
+cols_to_analyze, "Frailty.index")
+
+}

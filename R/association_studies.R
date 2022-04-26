@@ -140,6 +140,13 @@ association_study_long <- function(data, expl_var_names, ...){
 #' @return data frame with results as output
 #' @export
 #'
+#' @examples
+#' library(dplyr)
+#' cols_to_analyze <- immune_data %>%
+#' select(-c(Batch, Sex, Frailty.index)) %>% names()
+#' test_outcome <- association_study(immune_data,
+#' cols_to_analyze, "Frailty.index")
+#'
 association_study <- function(data, expl_var_names, response.var, ...){
   purrr::map_dfr(expl_var_names, .f = function(x){
     test_association(data, response.var = response.var,  explanatory.var = x, ...)
