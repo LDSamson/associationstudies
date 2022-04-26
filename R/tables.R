@@ -20,10 +20,14 @@
 gm_mean = function(x, na.rm=TRUE, offset = 0, zero.propagate = FALSE, conf.level = NA){
   if(any(x < 0, na.rm = TRUE)){warning("Non-positive values in 'x'"); return(NaN)}
   if(zero.propagate && any(x == 0, na.rm = TRUE)) return(0)
+  #! Unlike in the example from stackoverflow,
+  # this also removes NA's from the length call below, which I think is correct
   if (sum(is.na(x)) > 0){
+    if(all(is.na(x))) return(NaN)
     if (na.rm) {x <- stats::na.omit(x)}
       else {return(NA)}
   }
+  if(all(x == 0)) return(0)
   if(offset > 0 ) x <- x + offset
   gm <- exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
   if(!is.na(conf.level)){
@@ -34,19 +38,20 @@ gm_mean = function(x, na.rm=TRUE, offset = 0, zero.propagate = FALSE, conf.level
   gm
 }
 
-#' Geomean + Conf interval
+#' Format values for table input
 #'
-#' Improved version of geomean_conf for latex tables:
+#' Formats the results of gm_mean so that it can be input into
+#' a (latex) table, such as the output of knitr::kable().
+#' Aims to give a publication-ready result
+#'
 #' Inspired by this post: # https://stackoverflow.com/questions/44325464/how-to-control-knitr-kable-scientific-notation
-#' n.b. dollar signs give math output in kable function
-#' Make sure to set escape=F in kable function when using latex output!
 #'
 #' @param x numeric values that need to be summarized (for now, only geometric mean + confidence interval is supported)
 #' @param n.digits digits to preserve in output
 #' @param na.rm whether or not to remove NA's
 #' @param conf.level confidence interval, standard 0.95
 #' @param latex_output
-#' Logical, Whether dollar signs shold be used around the output string,
+#' Logical, Whether dollar signs should be used around the output string,
 #' for latex formatting in knitr::kable. Make sure to set escape=FALSE in
 #' knitr::kable function when using this.
 #'
@@ -61,15 +66,11 @@ format_summary_values <- function(x, n.digits = 3, na.rm = FALSE, conf.level = 0
                            latex_output = TRUE){
   sumvals <- gm_mean(x, na.rm = na.rm, conf.level = conf.level)
   if(all(is.na(sumvals))) stop("Invalid summary input. Negative numbers included? Check values with function gm_mean()")
-  # 'g' in formatC saves space only when necessary:
-  mean.formatted <- formatC(sumvals[1],  format = "g", digits = n.digits)
-  if(stringr::str_detect(mean.formatted, ".e")){
-    exponent <- as.numeric(stringr::str_remove(mean.formatted, ".*e"))
-  }else{exponent <- 0}
-  # force n.digits: https://stackoverflow.com/a/12135122/11856430
+  exponent <- floor(log10(sumvals[1]))
+  if(exponent <= n.digits) exponent <- 0
   mean_interval <- format(
     round(sumvals/10^exponent, digits = n.digits),
-    nsmall = n.digits
+    nsmall = n.digits # see: https://stackoverflow.com/a/12135122/11856430
   )
   output.string <- paste0(
     mean_interval[1],
@@ -77,7 +78,8 @@ format_summary_values <- function(x, n.digits = 3, na.rm = FALSE, conf.level = 0
     paste0(mean_interval[-1], collapse = "-"),
     ")"
     )
-  if(exponent != 0) output.string <- paste0(c(output.string, "*10^", exponent), collapse = "")
+  if(exponent != 0) output.string <- paste0(c(output.string, "*10^", exponent),
+                                            collapse = "")
   if(latex_output) output.string <- paste0("$", output.string, "$")
   output.string
 }

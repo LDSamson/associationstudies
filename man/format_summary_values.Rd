@@ -2,7 +2,7 @@
 % Please edit documentation in R/tables.R
 \name{format_summary_values}
 \alias{format_summary_values}
-\title{Geomean + Conf interval}
+\title{Format values for table input}
 \usage{
 format_summary_values(
   x,
@@ -21,7 +21,7 @@ format_summary_values(
 
 \item{conf.level}{confidence interval, standard 0.95}
 
-\item{latex_output}{Logical, Whether dollar signs shold be used around the output string,
+\item{latex_output}{Logical, Whether dollar signs should be used around the output string,
 for latex formatting in knitr::kable. Make sure to set escape=FALSE in
 knitr::kable function when using this.}
 }
@@ -29,10 +29,12 @@ knitr::kable function when using this.}
 Character value to input in kable function
 }
 \description{
-Improved version of geomean_conf for latex tables:
+Formats the results of gm_mean so that it can be input into
+a (latex) table, such as the output of knitr::kable().
+Aims to give a publication-ready result
+}
+\details{
 Inspired by this post: # https://stackoverflow.com/questions/44325464/how-to-control-knitr-kable-scientific-notation
-n.b. dollar signs give math output in kable function
-Make sure to set escape=F in kable function when using latex output!
 }
 \examples{
 data <- abs(rnorm(n = 100, mean = 10000, sd = 10000))
