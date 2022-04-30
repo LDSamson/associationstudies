@@ -1,7 +1,7 @@
 # library(associationstudies)
 
-tab_names <- c('Response.var','Explanatory.var','sample.size',
-               'stratified.by','n.resample','Method','Direction', 'rho', 'p.value')
+tab_names <- c('response.var','explanatory.var','sample.size',
+               'stratified.by','n.resample','method','direction', 'rho', 'p.value')
 
 test_that("Ouput is not a data frame", {
   testthat::expect_equal(
@@ -49,8 +49,33 @@ test_that("Error when low number of observations in a block", {
 cols_to_analyze <- unique(immune_data_long$name)
 test_that("Unexpected output", {
   test_outcome <- association_study(immune_data,
-                                         cols_to_analyze, "Frailty.index")
+                                    response.var = "Frailty.index",
+                                    expl.var.names = cols_to_analyze
+                                    )
   expect_equal(is.data.frame(test_outcome), TRUE)
   expect_equal(nrow(test_outcome), 20)
   expect_equal(names(test_outcome), tab_names)
 })
+
+# library(dplyr)
+# cols_to_analyze <- immune_data %>%
+#  select(-c(Batch, Sex, Frailty.index)) %>% names()
+# library(corrplot)
+#test_outcome <- association_study(immune_data, n.resample = 1000)
+# test_outcome <- BH_selection(test_outcome, FDR_cutoff = 0.05)
+
+# plot_p_histogram(test_outcome)
+
+# b <- associationstudies::create_matrix(
+#   test_outcome, "response.var", "explanatory.var",
+#   markers.to.test = names(immune_data))
+# c <- associationstudies::create_matrix(
+#   test_outcome, "response.var", "explanatory.var", values = "FDR_selection",
+#   markers.to.test = names(immune_data))
+# corrplot(b, tl.col = "black",
+#          method = 'ellipse', type = 'upper', diag = FALSE,
+#          order = "hclust",  addrect = 3,
+#          p.mat = c, insig = "label_sig",
+#          pch = "*", pch.cex = 1.5 )
+#
+# a <- association_study(immune_data, exclude = c("Sex"))

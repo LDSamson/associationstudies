@@ -71,18 +71,18 @@ test_association <- function(
                                          "block")
   }
   results.to.return <- data.frame(
-    "Response var"    = response.var,
-    "Explanatory var" = explanatory.var,
+    "response.var"    = response.var,
+    "explanatory.var" = explanatory.var,
     "sample.size"     = nrow(data.to.analyze),
     "stratified.by"   = paste(stratum, collapse = "_"),
     "n.resample"      = n.resample,
-    "Method"          = test.results@method,
-    "Direction"       = sign(coin::statistic(test.results)),
+    "method"          = test.results@method,
+    "direction"       = sign(coin::statistic(test.results)),
     "rho"             = NA_integer_,
     "p.value"         = as.numeric(coin::pvalue(test.results))
     )
   ## Add rho to outcome, if applicable:
-  if(results.to.return[["Method"]] == "Spearman Correlation Test"){
+  if(results.to.return[["method"]] == "Spearman Correlation Test"){
     results.to.return[["rho"]] <- global.rho}
   ## Return results:
   return(results.to.return)
@@ -104,38 +104,47 @@ test_association <- function(
 #' Note 2: all blocks should contain enough observations.
 #'
 #' @param data data frame to use
-#' @param expl_var_names character value of column that contains all the names of the response values that need to be investigated separately
+#' @param expl.var.names character value of column that contains all the names of the response values that need to be investigated separately
 #' @param ... other values will be parsed to \code{\link{test_association}}
 #'
 #' @return data frame with results as output
 #' @export
 #'
-association_study_long <- function(data, expl_var_names, ...){
-  purrr::map_dfr(unique(data[[expl_var_names]]), .f = function(x){
-    df <- test_association(data[data[[expl_var_names]] == x, ], ...)
-    df["Response.var"] <- x
+association_study_long <- function(data, expl.var.names, ...){
+  purrr::map_dfr(unique(data[[expl.var.names]]), .f = function(x){
+    df <- test_association(data[data[[expl.var.names]] == x, ], ...)
+    df["response.var"] <- x
     df
   })
 }
 
 #' Perform association study
 #'
-#' This function is a small wrapper around the function \code{\link{test_association}}.
-#' It tests associations between an explanatory variable and multiple response
-#' variables. The response variables are columns in a data frame and their
-#' colum names should be given in a character string.
+#' This function is a wrapper around the function \code{\link{test_association}}.
+#' This function tests associations between multiple variables by repeatedly
+#' calling the function \code{\link{test_association}}.
+#' Standard, all possible single associations between pairs of variables in the
+#' given data frame are tested.
 #'
-#' Note: Response variables should be of the same type
-#' (e.g. all numerical, all categorical).
-#' Note 2: all blocks should contain enough observations.
+#' The response variables are columns in a data frame and their
+#' column names should be given in a character string.
+#'
+#' Note 2: Associations can be stratified (see options for
+#' \code{\link{test_association}}). All strata/blocks should contain enough
+#' observations.
 #'
 #' @param data data frame to use
-#' @param expl_var_names
-#' character value of all column names that need to be compared to the response
-#' variable. This will we looped over the variable "explanatory.var" in the
-#' function \code{\link{test_association}}
-#' @param response.var response variable. Will be parsed to  \code{\link{test_association}}
-#' @param ... other values will be parsed to \code{\link{test_association}}
+#' @param response.var
+#' Character value, optional. Response variable. If provided, associations will
+#' only be tested for this single response variable.
+#' @param expl.var.names
+#' Character vector, optional.
+#' All possible pairs of associations between these variables will be tested.
+#' If \code{NULL} (standard), associations will be tested between all variables
+#' in the data frame.
+#' @param exclude These variables will be excluded from analysis. If this argument
+#' is used, the parameter expl.var.names will be ignored.
+#' @param ... other parameters that will be parsed to \code{\link{test_association}}.
 #'
 #' @return data frame with results as output
 #' @export
@@ -145,10 +154,58 @@ association_study_long <- function(data, expl_var_names, ...){
 #' cols_to_analyze <- immune_data %>%
 #' select(-c(Batch, Sex, Frailty.index)) %>% names()
 #' test_outcome <- association_study(immune_data,
-#' cols_to_analyze, "Frailty.index")
+#' "Frailty.index", cols_to_analyze)
 #'
-association_study <- function(data, expl_var_names, response.var, ...){
-  purrr::map_dfr(expl_var_names, .f = function(x){
-    test_association(data, response.var = response.var,  explanatory.var = x, ...)
-  })
+association_study <- function(
+    data,
+    response.var = NULL,
+    expl.var.names = NULL,
+    exclude = NULL,
+    ...
+    ){
+  if(is.null(expl.var.names)) expl.var.names <- names(data)
+
+  ### note: work in progress: merge variable params expl.var.names and exclude
+  # in a future version!
+  if(!is.null(exclude)){
+    message(paste0(
+      "Excluding variable",
+      ifelse(length(exclude) == 1, " ", "s "),
+      paste0(exclude, collapse = ", "),
+      ". Parameter expl.var.names will be ignored"
+      ))
+    data <- data[!names(data) %in% exclude]
+    expl.var.names <- names(data)
+  }
+  if(!is.null(response.var)){
+    expl.var.names <- expl.var.names[expl.var.names != response.var]
+    test_results <- purrr::map_dfr(expl.var.names, .f = function(x){
+      test_association(data, response.var = response.var,  explanatory.var = x, ...)
+      })
+   return(test_results)
+  }
+  pairs_to_test <- variable_pair_combinations(data, expl.var.names)
+  # since at the moment only numerical response variables are supported,
+  # below shifts non-numerical variables from response variable
+  # to the explanatory variable:
+  non_numerical <- unlist(lapply(pairs_to_test[,1],
+                                 FUN = function(x){!is.numeric(data[[x]])}))
+  pairs_to_test[non_numerical, ] <- pairs_to_test[non_numerical, 2:1]
+
+  test_results <- do.call(
+    "rbind",
+    apply(
+      pairs_to_test,
+      MARGIN = 1,
+      FUN = function(x){
+        test_association(
+          dataset = data,
+          response.var = x[1],
+          explanatory.var = x[2],
+          ...
+        )
+      }
+    )
+  )
+  test_results
 }

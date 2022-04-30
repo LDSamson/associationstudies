@@ -4,38 +4,53 @@
 \alias{association_study}
 \title{Perform association study}
 \usage{
-association_study(data, expl_var_names, response.var, ...)
+association_study(
+  data,
+  response.var = NULL,
+  expl.var.names = NULL,
+  exclude = NULL,
+  ...
+)
 }
 \arguments{
 \item{data}{data frame to use}
 
-\item{expl_var_names}{character value of all column names that need to be compared to the response
-variable. This will we looped over the variable "explanatory.var" in the
-function \code{\link{test_association}}}
+\item{response.var}{Character value, optional. Response variable. If provided, associations will
+only be tested for this single response variable.}
 
-\item{response.var}{response variable. Will be parsed to  \code{\link{test_association}}}
+\item{expl.var.names}{Character vector, optional.
+All possible pairs of associations between these variables will be tested.
+If \code{NULL} (standard), associations will be tested between all variables
+in the data frame.}
 
-\item{...}{other values will be parsed to \code{\link{test_association}}}
+\item{exclude}{These variables will be excluded from analysis. If this argument
+is used, the parameter expl.var.names will be ignored.}
+
+\item{...}{other parameters that will be parsed to \code{\link{test_association}}.}
 }
 \value{
 data frame with results as output
 }
 \description{
-This function is a small wrapper around the function \code{\link{test_association}}.
-It tests associations between an explanatory variable and multiple response
-variables. The response variables are columns in a data frame and their
-colum names should be given in a character string.
+This function is a wrapper around the function \code{\link{test_association}}.
+This function tests associations between multiple variables by repeatedly
+calling the function \code{\link{test_association}}.
+Standard, all possible single associations between pairs of variables in the
+given data frame are tested.
 }
 \details{
-Note: Response variables should be of the same type
-(e.g. all numerical, all categorical).
-Note 2: all blocks should contain enough observations.
+The response variables are columns in a data frame and their
+column names should be given in a character string.
+
+Note 2: Associations can be stratified (see options for
+\code{\link{test_association}}). All strata/blocks should contain enough
+observations.
 }
 \examples{
 library(dplyr)
 cols_to_analyze <- immune_data \%>\%
 select(-c(Batch, Sex, Frailty.index)) \%>\% names()
 test_outcome <- association_study(immune_data,
-cols_to_analyze, "Frailty.index")
+"Frailty.index", cols_to_analyze)
 
 }
