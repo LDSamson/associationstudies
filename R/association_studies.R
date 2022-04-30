@@ -137,13 +137,12 @@ association_study_long <- function(data, expl.var.names, ...){
 #' @param response.var
 #' Character value, optional. Response variable. If provided, associations will
 #' only be tested for this single response variable.
-#' @param expl.var.names
-#' Character vector, optional.
+#' @param vars.to.select
+#' Variables to select. Will be used within dplyr::select.
 #' All possible pairs of associations between these variables will be tested.
-#' If \code{NULL} (standard), associations will be tested between all variables
-#' in the data frame.
-#' @param exclude These variables will be excluded from analysis. If this argument
-#' is used, the parameter expl.var.names will be ignored.
+#' Standard all variables will be selected.
+#' @param stratum
+#' character vector. When used, the tests will be blocked by these variables.
 #' @param ... other parameters that will be parsed to \code{\link{test_association}}.
 #'
 #' @return data frame with results as output
@@ -159,28 +158,29 @@ association_study_long <- function(data, expl.var.names, ...){
 association_study <- function(
     data,
     response.var = NULL,
-    expl.var.names = NULL,
-    exclude = NULL,
+    vars.to.select = tidyselect::everything(),
+    stratum = NULL,
     ...
     ){
-  if(is.null(expl.var.names)) expl.var.names <- names(data)
-
-  ### note: work in progress: merge variable params expl.var.names and exclude
-  # in a future version!
-  if(!is.null(exclude)){
-    message(paste0(
-      "Excluding variable",
-      ifelse(length(exclude) == 1, " ", "s "),
-      paste0(exclude, collapse = ", "),
-      ". Parameter expl.var.names will be ignored"
-      ))
-    data <- data[!names(data) %in% exclude]
-    expl.var.names <- names(data)
+  if(!is.null(response.var)){
   }
+  if(!"data.frame" %in% class(data)) stop("data should be of type data.frame")
+
+  data <- data %>%
+    # select 'vars.to.select' first so that also negative selection works:
+    dplyr::select({{vars.to.select}},
+                  tidyselect::any_of(c(response.var, stratum))) %>%
+    # (not essential) now just change variable order:
+    dplyr::select(tidyselect::any_of(c(response.var, stratum)),
+                  tidyselect::everything())
+  expl.var.names <- names(data)
+  if(!is.null(stratum)){expl.var.names <- names(data)[!names(data) %in% stratum]}
+
   if(!is.null(response.var)){
     expl.var.names <- expl.var.names[expl.var.names != response.var]
     test_results <- purrr::map_dfr(expl.var.names, .f = function(x){
-      test_association(data, response.var = response.var,  explanatory.var = x, ...)
+      test_association(data, response.var = response.var,  explanatory.var = x,
+                       stratum = stratum, ...)
       })
    return(test_results)
   }
@@ -202,6 +202,7 @@ association_study <- function(
           dataset = data,
           response.var = x[1],
           explanatory.var = x[2],
+          stratum = stratum,
           ...
         )
       }

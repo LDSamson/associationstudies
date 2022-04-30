@@ -50,7 +50,7 @@ cols_to_analyze <- unique(immune_data_long$name)
 test_that("Unexpected output", {
   test_outcome <- association_study(immune_data,
                                     response.var = "Frailty.index",
-                                    expl.var.names = cols_to_analyze
+                                    vars.to.select = cols_to_analyze
                                     )
   expect_equal(is.data.frame(test_outcome), TRUE)
   expect_equal(nrow(test_outcome), 20)
@@ -79,3 +79,9 @@ test_that("Unexpected output", {
 #          pch = "*", pch.cex = 1.5 )
 #
 # a <- association_study(immune_data, exclude = c("Sex"))
+# a <- association_study(as.matrix(immune_data), "Frailty.index",
+#                        vars.to.select = -c(Tregs, Neutrophils),
+#                        stratum = c("Batch", "Sex"))
+# association_study(immune_data[1:10])
+# a <- immune_data %>%
+#   select(-c("Tregs", "Neutrophils"), "Frailty.index")

@@ -7,8 +7,8 @@
 association_study(
   data,
   response.var = NULL,
-  expl.var.names = NULL,
-  exclude = NULL,
+  vars.to.select = tidyselect::everything(),
+  stratum = NULL,
   ...
 )
 }
@@ -18,13 +18,11 @@ association_study(
 \item{response.var}{Character value, optional. Response variable. If provided, associations will
 only be tested for this single response variable.}
 
-\item{expl.var.names}{Character vector, optional.
+\item{vars.to.select}{Variables to select. Will be used within dplyr::select.
 All possible pairs of associations between these variables will be tested.
-If \code{NULL} (standard), associations will be tested between all variables
-in the data frame.}
+Standard all variables will be selected.}
 
-\item{exclude}{These variables will be excluded from analysis. If this argument
-is used, the parameter expl.var.names will be ignored.}
+\item{stratum}{character vector. When used, the tests will be blocked by these variables.}
 
 \item{...}{other parameters that will be parsed to \code{\link{test_association}}.}
 }
