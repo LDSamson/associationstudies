@@ -11,7 +11,7 @@ test_that("Ouput is not a data frame", {
 })
 test_that("Output names incorrect", {
 
-  testthat::expect_equal(names(test_association(immune_data, "Tregs", "Frailty.index")),
+  testthat::expect_equal(names(test_association(immune_data, "Frailty.index", "Tregs")),
                          tab_names)
   testthat::expect_equal(names(test_association(immune_data, "Frailty.index", "Sex")),
                          tab_names)
@@ -57,31 +57,52 @@ test_that("Unexpected output", {
   expect_equal(names(test_outcome), tab_names)
 })
 
-# library(dplyr)
-# cols_to_analyze <- immune_data %>%
-#  select(-c(Batch, Sex, Frailty.index)) %>% names()
-# library(corrplot)
-#test_outcome <- association_study(immune_data, n.resample = 1000)
-# test_outcome <- BH_selection(test_outcome, FDR_cutoff = 0.05)
 
-# plot_p_histogram(test_outcome)
+############ Test function association_study
+standard_test <- function(data = test_output){
+  test_that("Unexpected standard output", {
 
-# b <- associationstudies::create_matrix(
-#   test_outcome, "response.var", "explanatory.var",
-#   markers.to.test = names(immune_data))
-# c <- associationstudies::create_matrix(
-#   test_outcome, "response.var", "explanatory.var", values = "FDR_selection",
-#   markers.to.test = names(immune_data))
-# corrplot(b, tl.col = "black",
-#          method = 'ellipse', type = 'upper', diag = FALSE,
-#          order = "hclust",  addrect = 3,
-#          p.mat = c, insig = "label_sig",
-#          pch = "*", pch.cex = 1.5 )
-#
-# a <- association_study(immune_data, exclude = c("Sex"))
-# a <- association_study(as.matrix(immune_data), "Frailty.index",
-#                        vars.to.select = -c(Tregs, Neutrophils),
-#                        stratum = c("Batch", "Sex"))
-# association_study(immune_data[1:10])
-# a <- immune_data %>%
-#   select(-c("Tregs", "Neutrophils"), "Frailty.index")
+    expect_true(is.data.frame(data))
+    expect_true(all(names(data) == tab_names))
+    expect_true(all(
+      unlist(lapply(data[, c("sample.size", "n.resample",
+                             "direction", "rho", "p.value")],
+                    is.numeric))
+    ))
+    expect_true(all(data$p.value <= 1))
+    expect_true(all(na.omit(abs(data$rho)) <= 1))
+  })
+}
+
+# Test pairwise associations between all variables in a a data frame:
+standard_test(association_study(immune_data[1:5]))
+
+#Test associations of a response variable with all other variables in a data frame:
+standard_test(association_study(immune_data, "Frailty.index"))
+
+# Test associations with a selection of variables:
+test_output <- association_study(immune_data, "Frailty.index", c(Tregs, Neutrophils))
+standard_test()
+test_that("First var name should be the same", {
+  expect_equal(unique(test_output$response.var), "Frailty.index")
+})
+
+# Test excluding variables:
+test_output <- association_study(immune_data, "Frailty.index", -c(Tregs, Neutrophils))
+standard_test()
+test_that("variables are not excluded appropriately", {
+  expect_false(any(c("Tregs", "Neutrophils") %in% test_output$explanatory.var))
+})
+
+# test a blocked design:
+test_output <- association_study(immune_data, "Frailty.index",
+                                 stratum = c("Batch", "Sex"))
+standard_test()
+test_that("Blocking unexpected", {
+  expect_true(all(test_output$stratified.by == "Batch_Sex"))
+})
+
+test_that("not enough data should give an error", {
+  expect_error(association_study(head(immune_data), "Frailty.index",
+                                 stratum = c("Batch", "Sex")))
+})

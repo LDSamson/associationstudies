@@ -148,12 +148,28 @@ association_study_long <- function(data, expl.var.names, ...){
 #' @return data frame with results as output
 #' @export
 #'
+#' @seealso
+#' \code{\link{test_association}} for further arguments that can be used (for
+#' example, changing the resampling number n.resample),
+#' \code{\link{BH_selection}} for applying the Benjamini-Hochberg selection
+#' procedure based on False Discovery Rate.
+#'
 #' @examples
-#' library(dplyr)
-#' cols_to_analyze <- immune_data %>%
-#' select(-c(Batch, Sex, Frailty.index)) %>% names()
-#' test_outcome <- association_study(immune_data,
-#' "Frailty.index", cols_to_analyze)
+#' ## Test pairwise associations between all variables in a a data frame:
+#' association_study(immune_data[, 1:10])
+#'
+#' ## Test associations of a response variable with all other variables in a data frame:
+#' association_study(immune_data, "Frailty.index")
+#'
+#' ## Test associations with a selection of variables:
+#' association_study(immune_data, "Frailty.index", c(Tregs, Neutrophils))
+#'
+#' ## Excluding variables is also possible:
+#' association_study(immune_data, "Frailty.index", -c(Tregs, Neutrophils))
+#'
+#' ## as well as using a blocked design:
+#' association_study(immune_data, "Frailty.index", -c(Tregs, Neutrophils),
+#' stratum = c("Batch", "Sex"))
 #'
 association_study <- function(
     data,
@@ -167,46 +183,40 @@ association_study <- function(
   if(!"data.frame" %in% class(data)) stop("data should be of type data.frame")
 
   data <- data %>%
-    # select 'vars.to.select' first so that also negative selection works:
+    # select 'vars.to.select' first so that also exclusion of variables works:
     dplyr::select({{vars.to.select}},
                   tidyselect::any_of(c(response.var, stratum))) %>%
     # (not essential) now just change variable order:
     dplyr::select(tidyselect::any_of(c(response.var, stratum)),
                   tidyselect::everything())
-  expl.var.names <- names(data)
-  if(!is.null(stratum)){expl.var.names <- names(data)[!names(data) %in% stratum]}
+  expl_var_names <- names(data)
+  if(!is.null(stratum)){expl_var_names <- names(data)[!names(data) %in% stratum]}
 
   if(!is.null(response.var)){
-    expl.var.names <- expl.var.names[expl.var.names != response.var]
-    test_results <- purrr::map_dfr(expl.var.names, .f = function(x){
-      test_association(data, response.var = response.var,  explanatory.var = x,
-                       stratum = stratum, ...)
-      })
-   return(test_results)
+    expl_var_names <- expl_var_names[expl_var_names != response.var]
+    pairs_to_test <- as.matrix(data.frame(response.var, expl_var_names))
+    colnames(pairs_to_test) <- NULL
+  }else{
+    pairs_to_test <- variable_pair_combinations(data, expl_var_names)
+    # since at the moment only numerical response variables are supported,
+    # below attempts to shift non-numerical variables from response variable
+    # to the explanatory variable:
+    non_numerical <- unlist(lapply(pairs_to_test[,1],
+                                   FUN = function(x){!is.numeric(data[[x]])}))
+    pairs_to_test[non_numerical, ] <- pairs_to_test[non_numerical, 2:1]
   }
-  pairs_to_test <- variable_pair_combinations(data, expl.var.names)
-  # since at the moment only numerical response variables are supported,
-  # below shifts non-numerical variables from response variable
-  # to the explanatory variable:
-  non_numerical <- unlist(lapply(pairs_to_test[,1],
-                                 FUN = function(x){!is.numeric(data[[x]])}))
-  pairs_to_test[non_numerical, ] <- pairs_to_test[non_numerical, 2:1]
-
-  test_results <- do.call(
-    "rbind",
-    apply(
-      pairs_to_test,
-      MARGIN = 1,
-      FUN = function(x){
-        test_association(
-          dataset = data,
-          response.var = x[1],
-          explanatory.var = x[2],
-          stratum = stratum,
-          ...
+  test_results <- apply(
+    X = pairs_to_test,
+    MARGIN = 1,
+    FUN = function(x){
+      test_association(
+        dataset = data,
+        response.var = x[1],
+        explanatory.var = x[2],
+        stratum = stratum,
+        ...
         )
       }
     )
-  )
-  test_results
+  do.call("rbind", test_results)
 }

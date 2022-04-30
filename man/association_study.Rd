@@ -45,10 +45,26 @@ Note 2: Associations can be stratified (see options for
 observations.
 }
 \examples{
-library(dplyr)
-cols_to_analyze <- immune_data \%>\%
-select(-c(Batch, Sex, Frailty.index)) \%>\% names()
-test_outcome <- association_study(immune_data,
-"Frailty.index", cols_to_analyze)
+## Test pairwise associations between all variables in a a data frame:
+association_study(immune_data[, 1:10])
 
+## Test associations of a response variable with all other variables in a data frame:
+association_study(immune_data, "Frailty.index")
+
+## Test associations with a selection of variables:
+association_study(immune_data, "Frailty.index", c(Tregs, Neutrophils))
+
+## Excluding variables is also possible:
+association_study(immune_data, "Frailty.index", -c(Tregs, Neutrophils))
+
+## as well as using a blocked design:
+association_study(immune_data, "Frailty.index", -c(Tregs, Neutrophils),
+stratum = c("Batch", "Sex"))
+
+}
+\seealso{
+\code{\link{test_association}} for further arguments that can be used (for
+example, changing the resampling number n.resample),
+\code{\link{BH_selection}} for applying the Benjamini-Hochberg selection
+procedure based on False Discovery Rate.
 }
