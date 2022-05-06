@@ -2,20 +2,23 @@
 % Please edit documentation in R/tables.R
 \name{mean_sd}
 \alias{mean_sd}
-\title{Table output helper}
+\title{Mean plus standard deviation}
 \usage{
-mean_sd(var, n.digits = 2, na.rm = T)
+mean_sd(var, na.rm = T)
 }
 \arguments{
 \item{var}{variable name}
 
-\item{n.digits}{number of digits to round number}
-
-\item{na.rm}{exclude NA's or not}
+\item{na.rm}{logical, indicating whether NA values should be excluded}
 }
 \value{
 Character string
 }
 \description{
-older function used for nice table output
+A vector will be output containing the arithmetic mean and the standard
+deviation. The output can be used directly in the function
+\code{\link{format_values}} to create summary tables.
+}
+\examples{
+mean_sd(rnorm(100, 1000, 10))
 }

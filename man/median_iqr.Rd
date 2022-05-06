@@ -2,20 +2,23 @@
 % Please edit documentation in R/tables.R
 \name{median_iqr}
 \alias{median_iqr}
-\title{Table output helper}
+\title{Median + interquartile range}
 \usage{
-median_iqr(var, n.digits = 2, na.rm = T)
+median_iqr(var, na.rm = TRUE)
 }
 \arguments{
-\item{var}{variable name}
+\item{var}{numerical vector}
 
-\item{n.digits}{number of digits to use in output}
-
-\item{na.rm}{exclude NA's or not}
+\item{na.rm}{logical, indicating whether NA values should be excluded}
 }
 \value{
 Character string
 }
 \description{
-older function used for nice table output
+Creates a vector with the mean and interquartile range.
+Output can be used directly in the function
+\code{\link{format_values}} to create summary tables.
+}
+\examples{
+median_iqr(rnorm(100, 1000, 100))
 }

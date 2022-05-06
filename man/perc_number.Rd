@@ -2,22 +2,29 @@
 % Please edit documentation in R/tables.R
 \name{perc_number}
 \alias{perc_number}
-\title{Table output helper}
+\title{Percentage and number in ordinal variable.}
 \usage{
-perc_number(var, count.condition, n.digits = 1, na.rm = T)
+perc_number(var, count.condition, n.digits = 1, na.rm = TRUE)
 }
 \arguments{
-\item{var}{variable name}
+\item{var}{character of factor vector}
 
-\item{count.condition}{factor variable to group by}
+\item{count.condition}{character string. Variable to group by}
 
 \item{n.digits}{number of digits to use in output}
 
-\item{na.rm}{exclude NA's or not}
+\item{na.rm}{logical, indicating whether NA values should be excluded}
 }
 \value{
 Character string
 }
 \description{
-older function used for nice table output
+Helper function to create summary statistics of ordinal or categorical
+variables, for use in a summary table.
+It will display the occurrence of a condition within an ordinal or
+categorical variable. Works best with two groups.
+}
+\examples{
+groupvar <-  sample(c("Men", "Women"), 80, TRUE)
+perc_number(groupvar, count.condition = "Men")
 }

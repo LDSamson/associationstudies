@@ -2,14 +2,12 @@
 % Please edit documentation in R/tables.R
 \name{gm_mean}
 \alias{gm_mean}
-\title{Geometric mean function}
+\title{Geometric mean}
 \usage{
-gm_mean(x, na.rm = TRUE, offset = 0, zero.propagate = FALSE, conf.level = NA)
+gm_mean(x, offset = 0, zero.propagate = FALSE, conf.level = 0.95, na.rm = TRUE)
 }
 \arguments{
 \item{x}{numeric vector as input}
-
-\item{na.rm}{logical, whether missing values are allowed.}
 
 \item{offset}{Optional variable: adds a value to the data (1 is often used),
 so that no more zeros occur in the data. This is an acceptable way of
@@ -20,14 +18,18 @@ concentrations in a biomedical laboratory assay.}
 Overrides the offset parameter is true.}
 
 \item{conf.level}{If not missing, the confidence interval will be given together with the geometric mean}
+
+\item{na.rm}{logical, indicating whether NA values should be excluded}
 }
 \value{
 a vector of length 1 or, if conf.level is not missing, length 3
 }
 \description{
-Calculates the geometric mean.
+Calculates the geometric mean with confidence interval.
 If conf.level is given, a vector will be output containing the geometric mean,
 the lower bound confidence value, and the upper bound confidence value.
+Output can be used directly in the function
+\code{\link{format_values}} to create summary tables.
 Loosely based on \href{https://stackoverflow.com/a/25555105/11856430}{this}
 stackoverflow post.
 }

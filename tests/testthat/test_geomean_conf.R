@@ -22,7 +22,7 @@ expected_offset_outcomes  <- c(3.46410,   2.21336,  3.63424,  2.00000, NaN, 0)
 # })
 
 check_gm_results <- function(...){
-  outcomes <- round(unlist(lapply(test_data, gm_mean, ...)), digits = 5)
+  outcomes <- round(unlist(lapply(test_data, gm_mean, conf.level = NULL, ...)), digits = 5)
   names(outcomes) <- NULL
   outcomes
 }
@@ -68,7 +68,7 @@ compare_summ_outcome_format <- function(i){
   # i <- data6
   gm_outcome <- as.numeric(formatC(gm_mean(i, conf.level = 0.95, na.rm = TRUE),
                                    digits = 5))
-  form_outcome <- format_summary_values(i, na.rm = TRUE, n.digits = 4)
+  form_outcome <- format_values(gm_mean(i), na.rm = TRUE, n.digits = 4)
   exponent <- stringr::str_extract(form_outcome, "(?<=\\*10\\^)[[1-9]]")
   if(is.na(exponent)) exponent <- "0"
   exponent <- as.numeric(exponent)
@@ -100,6 +100,20 @@ test_that("Error with negative values", {
 })
 
 test_that("expect failure with negative values", {
-  #expect_message(format_summary_values(fail_data, na.rm = TRUE, n.digits = 4))
-  expect_error(gm_outcome(fail_data, na.rm = TRUE, n.digits = 4))
+  expect_error(suppressWarnings(format_values(gm_mean(fail_data, na.rm = TRUE))))
+})
+
+# create dummy data, with some variables being, just for illustration of this
+# function:
+test_that("unexpected format output", {
+  test_values <- immune_data$Neutrophils*10^5
+  expect_equal(
+    format_values(gm_mean(test_values), n.digits = 2),
+    "$3.40(4.53-9.77)*10^5$")
+  expect_equal(
+    format_values(median_iqr(test_values), n.digits = 2),
+    "$1.13(3.37)*10^6$")
+  expect_equal(
+    format_values(mean_sd(test_values), n.digits = 2),
+    "$1.75(1.75)*10^6$")
 })

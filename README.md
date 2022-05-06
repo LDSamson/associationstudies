@@ -15,9 +15,6 @@ and functions that help to create publication-ready summary tables.
 To do: 
 
 - Extend this readme file and description.
-- Create more informative error message when data has <2 unique values in association study
-- Create function that can test multiple pairs of associations, as implemented (here)[https://doi.org/10.1002/cti2.1374] (maybe merge with function association_study?)
 - Merge the function association_study with association_study_long?
 - Improve random forest function, implement unit tests
-- Improve functions to create summary values for tables (geomean_conf)
 - Create package vignettes

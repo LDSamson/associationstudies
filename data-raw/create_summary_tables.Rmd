@@ -1,0 +1,82 @@
+---
+title: "Create summary tables"
+output: html_document
+---
+
+```{r setup }
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(tidyr)
+```
+
+```{r}
+df <- data.frame(
+  grouping_var = sample(c("batch1", "batch2", "batch3"), 100, TRUE),
+  V1 = abs(rnorm(n = 100, mean = 10000, sd = 10000)),
+  V2 = exp(rnorm(n = 100, mean = log(10^6), sd = log(10^4))),
+  V3 = abs(rnorm(n = 100, mean = 100, sd = 10))
+  )
+
+sumtable <- data.frame(
+  `V1 median (IQR)`   = format_values(median_iqr(df$V1), n.digits = 2),
+  `V2 geomean (conf)` = format_values(gm_mean(df$V2), n.digits = 2),
+  `V3 mean (SD)`      = format_values(mean_sd(df$V3), n.digits = 2),
+  check.names = FALSE
+)
+sumtable
+```
+
+```{r}
+# create dummy data, with some variables having much higher average values
+# than others, to illustrate the use of this function:
+table_data <- immune_data %>%
+  mutate(across(c(Neutrophils, Monocytes), .fns = ~(.+1)*10^5))
+
+summ_table <- immune_data %>%
+  group_by(Sex) %>%
+  summarize(
+    Neutrophils = format_values(gm_mean(Neutrophils)),
+    Tregs = format_values(gm_mean(Tregs))
+  )
+knitr::kable(summ_table) %>%
+  kableExtra::kable_styling()
+
+# The function is also helpful to create many summary values at once:
+
+table_data_long <- table_data %>%
+  select(-c(Sex, Batch, Frailty.index)) %>%
+  tidyr::pivot_longer(col = everything())
+
+summ_table_long <- table_data_long %>%
+  group_by(name) %>%
+  summarize(
+    "Summary value" = format_values(gm_mean(value, offset = 1), n.digits = 2)
+  )
+# offset gives better results when geomean and confidence interval are calculated
+# and there are many zeros in the data. See details of the function gm_mean()
+# for more information.
+
+knitr::kable(summ_table_long) %>%
+  kableExtra::kable_styling()
+
+# dummy_data %>%
+# #  group_by(grouping_var) %>%
+#   summarize(format_values(gm_mean(V2)))
+# gmmeanval <- gm_mean(dummy_data$V2)
+# medianval <- median_iqr(dummy_data$V2)
+#
+# ggplot(dummy_data, aes(x = 1, y = V2)) +
+#   geom_boxplot(outlier.size = NA, width = 0.1) +
+#   geom_point(alpha = 0.2) +
+#   geom_linerange(aes(x = 1, ymin = gmmeanval[2], ymax = gmmeanval[3]),
+#                  col = "tomato", size = 2, position = position_nudge(x = 0.1)) +
+#   # geom_linerange(aes(x = 1.05, ymin = medianval[1]-medianval[2]/2,
+#   #                    ymax = medianval[1]+medianval[2]/4)) +
+#   geom_point(aes(x = 1.05, y = medianval[1])) +
+#   scale_y_log10()
+
+```
+
+

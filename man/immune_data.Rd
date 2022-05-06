@@ -3,7 +3,10 @@
 \docType{data}
 \name{immune_data}
 \alias{immune_data}
-\title{Toy data of immune cell subset concentrations}
+\title{Example data of immune cell subset concentrations.
+The variables "Frailty.index", "Sex", and "Batch" are random numbers.
+The other numbers and names are a selection of data from the source mentioned
+below.#'}
 \format{
 An object of class \code{data.frame} with 100 rows and 23 columns.
 }
@@ -14,6 +17,9 @@ https://doi.org/10.3389/fimmu.2021.670070
 immune_data
 }
 \description{
-Toy data of immune cell subset concentrations
+Example data of immune cell subset concentrations.
+The variables "Frailty.index", "Sex", and "Batch" are random numbers.
+The other numbers and names are a selection of data from the source mentioned
+below.#'
 }
 \keyword{datasets}
